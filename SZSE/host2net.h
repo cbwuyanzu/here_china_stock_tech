@@ -1,0 +1,20 @@
+#define bswap16(x) (((x & 0xff00) >> 8 )| ((x & 0x00ff) << 8))
+#define bswap32(x) (((x & 0xff000000) >> 24 )| ((x & 0x000000ff) << 24) | \
+                    ((x & 0x00ff0000) >>  8 )| ((x & 0x0000ff00) <<  8))
+#define bswap64(x) (((x & 0xff00000000000000) >> 56 )| ((x & 0x00000000000000ff) << 56) | \
+                    ((x & 0x00ff000000000000) >> 40 )| ((x & 0x000000000000ff00) << 40) | \
+                    ((x & 0x0000ff0000000000) >> 24 )| ((x & 0x0000000000ff0000) << 32) | \
+                    ((x & 0x000000ff00000000) >>  8 )| ((x & 0x00000000ff000000) <<  8)) 
+
+uint16_t htn16(uint16_t x){
+  uint16_t res = bswap16(x);
+  return res;
+}
+uint32_t htn32(uint32_t x){
+  uint32_t res = bswap32(x);
+  return res;
+}
+uint64_t htn64(uint64_t x){
+  uint64_t res = bswap64(x);
+  return res;
+}
