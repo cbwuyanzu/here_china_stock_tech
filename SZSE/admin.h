@@ -10,9 +10,6 @@ struct v5mdtail{
   uint32_t Checksum;
 };
 
-struct v5mdbody{
-};
-
 inline uint32_t GenerateCheckSum(char* buf, uint32_t len){
   long idx;
   uint32_t cks;
@@ -43,14 +40,14 @@ struct MsgLogon{
 
 int SendLogon(int sock){
   MsgLogon msg = {};
-  msg.head.MsgType = htn32(1);
-  msg.head.BodyLength = htn32(sizeof(v5mdLogonBody));
+  msg.head.MsgType = htnu32(1);
+  msg.head.BodyLength = htnu32(sizeof(v5mdLogonBody));
   v5mdLogonBody body ={SENDER,RECEIVER,htn32(30),PASSWD, VERSION};
   msg.body = body;
   char* buf = (char*) &msg;
   uint32_t buflen = sizeof(v5mdhead) + sizeof(v5mdLogonBody);
   uint32_t msglen = sizeof(msg);
-  msg.tail.Checksum = htn32(GenerateCheckSum(buf,buflen));
+  msg.tail.Checksum = htnu32(GenerateCheckSum(buf,buflen));
   if (send(sock, buf, msglen, 0) == -1) {
     std::cerr << "Message send failed" << std::endl;
     return -1;
@@ -64,31 +61,48 @@ void OnLogon(v5mdLogonBody logon);
 
 int RecvLogon(int sock){
   char buffer[1024] = {0};
-  int bytesReceived = recv(sock, buffer, sizeof(v5mdhead), 0);
-  if (bytesReceived == -1) {
-    std::cerr << "Receive failed" << std::endl;
-    return -1;
-  } else if (bytesReceived == 0) {
-    std::cout << "Connection closed by server" << std::endl;
-    return -1;
-  } else {
-    std::cout << "Logon response head" << std::endl;
+  int ret = 0;
+  uint32_t recvlen = 0;
+  while(recvlen < sizeof(v5mdhead)){
+    ret = recv(sock, buffer+recvlen, sizeof(v5mdhead)-recvlen, 0);
+    if(ret < 0){
+      std::cerr << "Receive head failed" << std::endl;
+      return ret;
+    } else if (ret == 0){
+      std::cout << "Connection closed by server receiving head" << std::endl;
+      return -1;
+    } else {
+      recvlen += ret;
+      std::cout << "Logon response head" << std::endl;
+    }
   }
   v5mdhead* hd = (v5mdhead*) buffer;
-  std::cout << "Logon response msgtype\t" << htn32(hd->MsgType) <<std::endl;
-  std::cout << "Logon response datalen\t" << htn32(hd->BodyLength) <<std::endl;
-  uint32_t bodyLen = htn32(hd->BodyLength);
-  uint32_t recvlen = 0;
-  char *pos = (char*) (hd + 1);
-  char *body = pos;
-  char *tail = (char*) (body + sizeof(v5mdLogonBody));
+  std::cout << "Logon response msgtype\t" << htnu32(hd->MsgType) <<std::endl;
+  std::cout << "Logon response datalen\t" << htnu32(hd->BodyLength) <<std::endl;
+  uint32_t msgType = htnu32(hd->MsgType);
+  uint32_t bodyLen = htnu32(hd->BodyLength);
+  if(msgType != 1|| bodyLen != sizeof(v5mdLogonBody)){
+    std::cerr << "Logon Response MsgType:[" << msgType << "] BodyLength:[" << bodyLen<<"] expected:[1][" << sizeof(v5mdLogonBody) <<"]" << std::endl;
+    return -1;
+  }
+  char *body = (char*) (hd + 1);
+  char *tail = (char*) (body + bodyLen);
+  ret = 0;
+  recvlen = 0;
   while(recvlen < bodyLen + sizeof(v5mdtail)){
-    recvlen += recv(sock, pos++, 1, 0);
-    //TODO 可以加个重试次数
+    ret = recv(sock, body+recvlen, bodyLen+sizeof(v5mdtail)-recvlen, 0);
+    if(ret < 0){
+      std::cerr << "Receive body failed" << std::endl;
+      return ret;
+    } else if (ret == 0){
+      std::cout << "Connection closed by server receiving body" << std::endl;
+      return -1;
+    } else {
+      recvlen += ret;
+    }
   }
   uint32_t checksum = GenerateCheckSum(buffer,sizeof(v5mdhead)+bodyLen);
-  //cmp_checksum;
-  if(htn32(checksum) == *(uint32_t*) tail){
+  if(htnu32(checksum) == *(uint32_t*) tail){
     std::cout << "Logon checksum passed" << std::endl;
   }
   else {
@@ -129,48 +143,56 @@ void OnRealTimeMD(){
 
 int RecvMsg(int sock){
   char buffer[4096] = {0};
-  int bytesReceived = recv(sock, buffer, sizeof(v5mdhead), 0);
-  if (bytesReceived == -1) {
-    std::cerr << "Receive failed" << std::endl;
-    return -1;
-  } else if (bytesReceived == 0) {
-    std::cout << "Connection closed by server" << std::endl;
-    return -1;
-  } else {
-    //std::cout << "Msg recveived" << std::endl;
+  int ret = 0;
+  uint32_t recvlen = 0;
+  while(recvlen < sizeof(v5mdhead)){
+    ret = recv(sock, buffer+recvlen, sizeof(v5mdhead)-recvlen, 0);
+    if (ret < 0) {
+      std::cerr << "Receive head failed" << std::endl;
+      return ret;
+    } else if (ret == 0) {
+      std::cout << "Connection closed by server receiving head" << std::endl;
+      return -1;
+    } else {
+      recvlen+=ret;
+    }
   }
   v5mdhead* hd = (v5mdhead*) buffer;
-  uint32_t msgtype = htn32(hd->MsgType);
-  uint32_t bodylength= htn32(hd->BodyLength);
-  //std::cout << "Msg received msgtype\t" << msgtype <<std::endl;
-  //std::cout << "Msg received datalen\t" << bodylength <<std::endl;
-  uint32_t recvlen = 0;
-  char *pos = (char*) (hd + 1);
-  char *body = pos;
+  uint32_t msgtype = htnu32(hd->MsgType);
+  uint32_t bodylength= htnu32(hd->BodyLength);
+  std::cout << "Msg received msgtype\t" << msgtype <<std::endl;
+  std::cout << "Msg received datalen\t" << bodylength <<std::endl;
+  char *body = (char*) (hd + 1);
   char *tail = (char*) (body + bodylength);
+  ret = 0;
+  recvlen = 0;
+  while(recvlen < bodylength + sizeof(v5mdtail))
   {
-    int ret = recv(sock, body, bodylength, 0);
-    //TODO 可以加个重试次数
+    ret = recv(sock, body+recvlen, bodylength+sizeof(v5mdtail)-recvlen, 0);
     if(ret < 0){
-      std::cerr << "Receive failed" << std::endl;
+      std::cerr << "Receive body failed" << std::endl;
       return ret;
     } else if (ret == 0){
-      std::cout << "Connection closed by server" << std::endl;
+      std::cout << "Connection closed by server receiving body" << std::endl;
       return -1;
     } else {
       recvlen += ret;
+      std::cout << "Received length:[cur_loop|accu_loop|expect]"<< ret <<"|"<< recvlen << "|" << bodylength+sizeof(v5mdtail)<< std::endl;
     }
   }
   if(bodylength+sizeof(v5mdhead)+sizeof(v5mdtail) >= 4096) {
     std::cout << "large pack than expectd " <<std::endl;
     std::cout << "Msg received msgtype\t" << msgtype <<std::endl;
     std::cout << "Msg received datalen\t" << bodylength <<std::endl;
-    return 0;
+    return -1;
   }
   uint32_t checksum = GenerateCheckSum(buffer,sizeof(v5mdhead)+bodylength);
-  uint32_t recvchecksum = htn32(*(uint32_t*)tail);
+  uint32_t recvchecksum = htnu32(*(uint32_t*)tail);
   if(checksum != recvchecksum){
-    std::cerr << "Msg checksum failed\tcalc" << checksum<< "received\t"<< recvchecksum << std::endl;
+    std::cerr << "Msg checksum failed\tcalc:" << std::setw(8) << std::setfill('0') << std::hex << checksum<< "\treceived:"<< recvchecksum << std::endl;
+    std::cerr << "Last Msg received msgtype\t" << std::dec << msgtype <<std::endl;
+    std::cerr << "Last Msg received datalen\t" << bodylength <<std::endl;
+    std::cerr << "Received length:[cur_loop|accu_loop|expect]"<< ret <<"|"<< recvlen << "|" << bodylength+sizeof(v5mdtail)<< std::endl;
     return -1;
   }
   switch (msgtype){

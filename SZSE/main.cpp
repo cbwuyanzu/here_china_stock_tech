@@ -1,12 +1,13 @@
 #include <iostream>
+#include <iomanip>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include "admin.h"
 
-#define SERVER_IP "172.190.118.77"
-#define PORT 26875
+#define SERVER_IP "172.24.2.50"
+#define PORT 18016
 #define BUFFER_SIZE 1024
 #define TOTAL_STEP  10
 
@@ -47,6 +48,7 @@ int main(){
   while(bexit == 0){
     bexit = RecvMsg(clientSocket);
   } 
+  std::cout << "step:last/"<< TOTAL_STEP << "\tTo Exit bexit=" << bexit << std::endl;
   close(clientSocket);
   return 0;
 }
