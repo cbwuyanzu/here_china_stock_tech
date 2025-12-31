@@ -7,10 +7,8 @@
 #define SZSE_SESSION_H
 
 #include <cstdint>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <iomanip>
 #include "host2net.h"
 #include "configuration.h"
 
@@ -23,12 +21,7 @@ struct v5mdtail{
   uint32_t Checksum;
 };
 
-inline uint32_t GenerateCheckSum(char* buf, uint32_t len){
-  long idx;
-  uint32_t cks;
-  for(idx = 0L, cks =0; idx < len; cks += (uint32_t)buf[idx++]);
-  return (cks%256);
-}
+
 // #pragma pack(1)
 using CompId = char[20];
 

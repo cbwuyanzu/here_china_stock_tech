@@ -1,3 +1,6 @@
+#ifndef SZSE_HOST2NET_H
+#define SZSE_HOST2NET_H
+
 #define bswap16(x) (((x & 0xff00) >> 8 )| ((x & 0x00ff) << 8))
 #define bswap32(x) (((x & 0xff000000) >> 24 )| ((x & 0x000000ff) << 24) | \
                     ((x & 0x00ff0000) >>  8 )| ((x & 0x0000ff00) <<  8))
@@ -35,3 +38,5 @@ inline int64_t htn64(int64_t x){
   int64_t res = bswap64(x);
   return res;
 }
+
+#endif
