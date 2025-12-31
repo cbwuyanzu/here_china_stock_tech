@@ -63,13 +63,59 @@ char* serializeLogonBody(const v5mdLogonBody &body, void* buffer) {
 }
 
 char* appendTail(void *buffer, size_t length) {
-    auto *p = static_cast<uint32_t *>(static_cast<void *>(static_cast<char *>(buffer) + length));
+    uint32_t *p = reinterpret_cast<uint32_t *>(static_cast<char *>(buffer) + length);
     *p = htnu32(GenerateCheckSum(static_cast<char *>(buffer), length));
     return static_cast<char *>(buffer);
 }
 
+int deserializeBody(mdData &md,const void* buffer, int length) {
+    memset(&md, 0, sizeof(md));
+    memcpy(&md, buffer, length);
+    auto *p = static_cast<const mdData*>(buffer);
+    md.OrigTime = htn64(p->OrigTime);
+    md.ChannelNo = htnu16(p->ChannelNo);
+    md.PrevClosePx = htn64(p->PrevClosePx);
+    md.NumTrades = htn64(p->NumTrades);
+    md.TotalVolumeTrade = htn64(p->TotalVolumeTrade);
+    md.TotalValueTrade = htn64(p->TotalValueTrade);
+    md.ExtendFields.NoMDEntries = htnu32(p->ExtendFields.NoMDEntries);
+    for (int i = 0; i < md.ExtendFields.NoMDEntries; i++) {
+        md.ExtendFields.MDEntryEntity[i].MDEntryPx = htn64(p->ExtendFields.MDEntryEntity[i].MDEntryPx);
+        md.ExtendFields.MDEntryEntity[i].MDEntrySize = htn64(p->ExtendFields.MDEntryEntity[i].MDEntrySize);
+        md.ExtendFields.MDEntryEntity[i].MDPriceLevel = htnu16(p->ExtendFields.MDEntryEntity[i].MDPriceLevel);
+        md.ExtendFields.MDEntryEntity[i].NumberOfOrders = htn64(p->ExtendFields.MDEntryEntity[i].NumberOfOrders);
+        md.ExtendFields.MDEntryEntity[i].NoOrders = htnu32(p->ExtendFields.MDEntryEntity[i].NoOrders);
+    }
+    if (length != md.ExtendFields.NoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup) + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md)) {
+        std::cout << "length:\t" << length << std::endl;
+        std::cout << "NoMDEntries:\t" << md.ExtendFields.NoMDEntries << std::endl;
+        std::cout << "Expect length:\t" << md.ExtendFields.NoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup) + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md) << std::endl;
+    }
+    return 0;
+}
 
-
-
+void showMdData(const mdData & md) {
+    std::cout << "OrigTime:\t" << md.OrigTime << std::endl
+    << "ChannelNo:\t" << md.ChannelNo << std::endl
+    << "MDStreamID:\t" << md.MDStreamID << std::endl
+    << "SecurityID:\t" << md.SecurityID << std::endl
+    << "SecurityIDSource:\t" << md.SecurityIDSource << std::endl
+    << "TradingPhaseCode:\t" << md.TradingPhaseCode << std::endl
+    << "PrevClosePx:\t" << md.PrevClosePx << std::endl
+    << "NumTrades:\t" << md.NumTrades << std::endl
+    << "TotalVolumeTrade:\t" << md.TotalVolumeTrade << std::endl
+    << "TotalValueTrade:\t" << md.TotalValueTrade << std::endl
+    << "ExtendFields:" << std::endl
+    << "NoMDEntries:" << md.ExtendFields.NoMDEntries << std::endl;
+    for (int i = 0; i < md.ExtendFields.NoMDEntries; i++) {
+        std::cout << "Record[" << i << "]:" << std::endl
+        << "MDEntryType:\t" << md.ExtendFields.MDEntryEntity[i].MDEntryType << std::endl
+        << "MDEntryPx:\t" << md.ExtendFields.MDEntryEntity[i].MDEntryPx << std::endl
+        << "MDEntrySize:\t" << md.ExtendFields.MDEntryEntity[i].MDEntrySize<< std::endl
+        << "MDPriceLevel:\t" <<md.ExtendFields.MDEntryEntity[i].MDPriceLevel<< std::endl
+        << "NumberOfOrders:\t" <<md.ExtendFields.MDEntryEntity[i].NumberOfOrders<< std::endl
+        << "NoOrders:\t" <<md.ExtendFields.MDEntryEntity[i].NoOrders<< std::endl;
+    }
+}
 
 

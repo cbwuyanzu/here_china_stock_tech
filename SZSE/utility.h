@@ -6,6 +6,7 @@
 #ifndef SZSE_UTILITY_H
 #define SZSE_UTILITY_H
 #include <cstdint>
+#include "session.h"
 
 
 int myRecv(int sock, char* buffer, size_t len);
@@ -26,5 +27,9 @@ char* setLogonHead(void* buffer);
 char* serializeLogonBody(const struct v5mdLogonBody &body, void* buffer);
 
 char* appendTail(void *buffer, size_t length);
+
+int deserializeBody(mdData &md,const void* buffer, int length);
+
+void showMdData(const mdData & md);
 
 #endif //SZSE_UTILITY_H

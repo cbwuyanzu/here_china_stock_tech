@@ -2,7 +2,6 @@
 //
 // Created by dzg on 2025/12/30.
 //
-#include "session.h"
 
 #include "utility.h"
 
@@ -87,7 +86,7 @@ int RecvMsg(int sock) {
         std::cerr << "Last Msg received datalen\t" << bodylength << std::endl;
         return -4;
     }
-
+    //TODO 这里还需要再加一些统计次数和耗时
     switch (msgtype) {
         case 3:
             OnHeartBeat();
@@ -96,7 +95,7 @@ int RecvMsg(int sock) {
             OnChannelHeartBeat();
             break;
         case 300111:
-            OnRealTimeMD();
+            OnRealTimeMD(body, bodylength);
             break;
     }
     return 0;
@@ -128,8 +127,24 @@ void OnChannelHeartBeat() {
 
 uint32_t rtmdcount = 0;
 
-void OnRealTimeMD() {
+void OnRealTimeMD(void* data,int length) {
     rtmdcount++;
     if (rtmdcount % 100 == 0)
         std::cout << "RealTimeMDCount\t" << rtmdcount << std::endl;
+    mdData md = {};
+    deserializeBody(md,data,length);
+    showMdData(md);
 }
+/*Standard Header 消息头
+MsgType=3xxx11
+OrigTime 数据生成时间
+ChannelNo 频道代码
+MDStreamID 行情类别
+SecurityID 证券代码
+SecurityIDSource 证券代码源
+TradingPhaseCode 产品所处的交易阶段代码
+PrevClosePx 昨收价
+NumTrades 成交笔数
+TotalVolumeTrade 成交总量
+TotalValueTrade 成交总金额
+Extend Fields 各业务扩展字段*/
