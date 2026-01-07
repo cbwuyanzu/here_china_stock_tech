@@ -14,6 +14,8 @@
 #pragma pack(1)
 //二进制解包 必须字节对齐
 
+#define MAX_MD_ENTRY_NO 30
+
 struct v5mdhead{
   uint32_t MsgType;
   uint32_t BodyLength;
@@ -74,7 +76,7 @@ struct MDEntry{
 //union ExtendFieldType {
   struct ExtendFieldType {
     NumInGroup NoMDEntries{};
-    MDEntry MDEntryEntity[20]{};
+    MDEntry MDEntryEntity[MAX_MD_ENTRY_NO]{};
   };
 // };
 

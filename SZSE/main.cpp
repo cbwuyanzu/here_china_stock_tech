@@ -7,6 +7,14 @@
 #include <unistd.h>
 #include "session.h"
 #include "configuration.h"
+#include "LoggerSingleton.h"
+#include "utility.h"
+
+
+#define LOG_INFO(...) {logger->info(__VA_ARGS__);}
+#define LOG_WARNING(...) {logger->warning(__VA_ARGS__);}
+#define LOG_ERROR(...) {logger->error(__VA_ARGS__);}
+#define LOG_CRITICAL(...) {logger->critical(__VA_ARGS__);}
 
 #define BUFFER_SIZE 1024
 #define TOTAL_STEP  10
@@ -14,13 +22,17 @@
 Configuration cfg = {};
 
 int main(){
+  // LoggerSingleton::getInstance().init("default_loger", "log/SzMd.log");
+  auto logger = spdlog::basic_logger_mt("basic_logger", "log/SzMd.log");
+  logger->flush_on(spdlog::level::info);
+  LoggerSingleton::getInstance().printLog();
 
   INIReader reader("config.ini");
   if (reader.ParseError() < 0) {
-    std::cout << "Can't load 'test.ini'\n";
+    LOG_CRITICAL( "Can't load 'test.ini'");
     return 1;
   }
-  std::cout << "start reading config.ini\n";
+  LOG_INFO("start reading config.ini");
 
   strcpy(cfg.szServerIP, reader.GetString("COMMON", "SERVER_IP", "127.0.0.1").c_str());
   cfg.iPort = reader.GetInteger("COMMON", "SRRVER_MD_PORT", 8888);
@@ -29,18 +41,18 @@ int main(){
   cfg.iHeartBeat = reader.GetInteger("LOGON", "HEARBEATINT", 30);
   strcpy(cfg.szPassword, reader.GetString("LOGON", "PASSWORD", "DEFAULT_PASSWORD").c_str());
   strcpy(cfg.szVersion, reader.GetString("LOGON", "VERSION", "1.0.0").c_str());
-  std::cout << cfg.szServerIP << "\n"
-          << cfg.iPort << "\n"
-          << cfg.szLocalName << "\n"
-          << cfg.szTargetName << "\n"
-          << cfg.iHeartBeat << "\n"
-          << cfg.szPassword << "\n"
-          << cfg.szVersion << "\n";
+  LOG_INFO("cfg.szServerIP:{}",cfg.szServerIP);
+  LOG_INFO("cfg.iPort:{}",cfg.iPort);
+  LOG_INFO("cfg.szLocalName:{}",cfg.szLocalName);
+  LOG_INFO("cfg.szTargetName:{}",cfg.szTargetName);
+  LOG_INFO("cfg.iHeartBeat:{}",cfg.iHeartBeat);
+  LOG_INFO("cfg.szPassword:{}",cfg.szPassword);
+  LOG_INFO("cfg.szVersion:{}",cfg.szVersion);
 
   // 创建socket
   int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
   if (clientSocket == -1) {
-    std::cerr << "Socket creation failed" << std::endl;
+    LOG_CRITICAL("Socket creation failed");
     return 1;
   }
    // 设置服务器地址
@@ -48,32 +60,31 @@ int main(){
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_port = htons(cfg.iPort);
   serverAddr.sin_addr.s_addr = inet_addr(cfg.szServerIP);
-  
+  LoggerSingleton::getInstance().printLog();
   if(connect(clientSocket,(sockaddr*)&serverAddr,sizeof(serverAddr)) == -1){
-    std::cerr << "Connection failed" << std::endl;
+    LOG_CRITICAL("Connection failed");
     close(clientSocket);
     return 1;
   }
-  std::cout << "step:1/"<< TOTAL_STEP << "\tConnect to server" << std::endl;
+  LOG_INFO("step:1/{}\tConnect to server",TOTAL_STEP);
   
   if(SendLogon(clientSocket,cfg) != 0){
-    std::cerr << "Logon failed" << std::endl;
+    LOG_CRITICAL("Logon failed");
     return 2;
   }
-  std::cout << "step:2/"<< TOTAL_STEP << "\tLogon Send" << std::endl;
+  LOG_INFO("step:2/{}\tLogon Send",TOTAL_STEP);
 
   if(RecvLogon(clientSocket) != 0){
-    std::cerr << "Logon failed" << std::endl;
+    LOG_CRITICAL("Logon failed");
     return 3;
   }
-  std::cout << "step:3/"<< TOTAL_STEP << "\tLogon Done" << std::endl;
-
-  std::cout << "step:4/"<< TOTAL_STEP << "\tStart Receive MarketData" << std::endl;
+  LOG_INFO("step:3/{}\tLogon Done",TOTAL_STEP);
+  LOG_INFO("step:4/{}\tStart Receive MarketData",TOTAL_STEP);
   int bexit = 0;
   while(bexit == 0){
     bexit = RecvMsg(clientSocket);
   } 
-  std::cout << "step:last/"<< TOTAL_STEP << "\tTo Exit bexit=" << bexit << std::endl;
+  LOG_INFO("step:last/{}\tTo Exit bexit=",TOTAL_STEP);
   close(clientSocket);
   return 0;
 }

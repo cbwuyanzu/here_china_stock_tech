@@ -132,7 +132,10 @@ void OnRealTimeMD(void* data,int length) {
     if (rtmdcount % 100 == 0)
         std::cout << "RealTimeMDCount\t" << rtmdcount << std::endl;
     mdData md = {};
-    deserializeBody(md,data,length);
+    if(deserializeBody(md,data,length)){
+        std::cerr << "deserialize body failed" << std::endl;
+        return ;
+    }
     showMdData(md);
 }
 /*Standard Header 消息头

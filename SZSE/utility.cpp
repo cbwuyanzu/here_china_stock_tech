@@ -9,7 +9,9 @@
 #include <iomanip>
 
 #include "host2net.h"
+#include "LoggerSingleton.h"
 #include "session.h"
+
 
 int myRecv(int sock, char* buffer, size_t len) {
     size_t recvlen = 0;
@@ -69,9 +71,22 @@ char* appendTail(void *buffer, size_t length) {
 }
 
 int deserializeBody(mdData &md,const void* buffer, int length) {
+
+    auto *p = static_cast<const mdData*>(buffer);
+
+    //这里先做一些包的检查, 以免引起coredump
+    uint32_t uNoMDEntries = htnu32(p->ExtendFields.NoMDEntries);
+    if ( uNoMDEntries > MAX_MD_ENTRY_NO) {
+        return -1;
+    }
+    if (length != uNoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup) + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md)) {
+        std::cout << "NoMDEntries:\t" << md.ExtendFields.NoMDEntries << std::endl;
+        std::cout << "length:\t" << length << std::endl;
+        std::cout << "Expect length:\t" << md.ExtendFields.NoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup) + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md) << std::endl;
+        return -2;
+    }
     memset(&md, 0, sizeof(md));
     memcpy(&md, buffer, length);
-    auto *p = static_cast<const mdData*>(buffer);
     md.OrigTime = htn64(p->OrigTime);
     md.ChannelNo = htnu16(p->ChannelNo);
     md.PrevClosePx = htn64(p->PrevClosePx);
@@ -85,11 +100,6 @@ int deserializeBody(mdData &md,const void* buffer, int length) {
         md.ExtendFields.MDEntryEntity[i].MDPriceLevel = htnu16(p->ExtendFields.MDEntryEntity[i].MDPriceLevel);
         md.ExtendFields.MDEntryEntity[i].NumberOfOrders = htn64(p->ExtendFields.MDEntryEntity[i].NumberOfOrders);
         md.ExtendFields.MDEntryEntity[i].NoOrders = htnu32(p->ExtendFields.MDEntryEntity[i].NoOrders);
-    }
-    if (length != md.ExtendFields.NoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup) + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md)) {
-        std::cout << "length:\t" << length << std::endl;
-        std::cout << "NoMDEntries:\t" << md.ExtendFields.NoMDEntries << std::endl;
-        std::cout << "Expect length:\t" << md.ExtendFields.NoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup) + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md) << std::endl;
     }
     return 0;
 }
@@ -117,5 +127,4 @@ void showMdData(const mdData & md) {
         << "NoOrders:\t" <<md.ExtendFields.MDEntryEntity[i].NoOrders<< std::endl;
     }
 }
-
 
