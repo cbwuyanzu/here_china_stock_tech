@@ -14,11 +14,8 @@
 class LoggerSingleton {
 public:
     static LoggerSingleton& getInstance();
-    std::shared_ptr<int> getLogger();
-    // std::shared_ptr<spdlog::logger> getLogger();
-    void printLog() const {
-        std::cerr << "printLog:" << *logger_ << std::endl;
-    }
+
+    std::shared_ptr<spdlog::logger> getLogger();
 
     LoggerSingleton(const LoggerSingleton &) = delete;
     LoggerSingleton& operator=(const LoggerSingleton &) = delete;
@@ -27,17 +24,15 @@ private:
     LoggerSingleton();
     ~LoggerSingleton();
 
-    std::shared_ptr<int> logger_;
-    // std::shared_ptr<spdlog::logger> logger_;
+    std::shared_ptr<spdlog::logger> logger_;
 
 };
-#if 0
+
 #define LOGGER LoggerSingleton::getInstance().getLogger()
-#define LOG_INFO(...) LOGGER->info(__VA_ARGS__)
-#define LOG_WARNING(...) LOGGER->warning(__VA_ARGS__)
-#define LOG_ERROR(...) LOGGER->error(__VA_ARGS__)
-#define LOG_CRITICAL(...) LOGGER->critical(__VA_ARGS__)
-#endif
+#define LOG_INFO(...) {LOGGER->info(__VA_ARGS__);}
+#define LOG_WARNING(...) {LOGGER->warning(__VA_ARGS__);}
+#define LOG_ERROR(...) {LOGGER->error(__VA_ARGS__);}
+#define LOG_CRITICAL(...) {LOGGER->critical(__VA_ARGS__);}
 
 
 #endif

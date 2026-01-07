@@ -9,11 +9,12 @@
 #include <iomanip>
 
 #include "host2net.h"
-#include "LoggerSingleton.h"
+#include "loggerSingleton.h"
 #include "session.h"
 
 
 int myRecv(int sock, char* buffer, size_t len) {
+    LOG_INFO("myRecv ...");
     size_t recvlen = 0;
     int ret = 0;
     while(recvlen < len){

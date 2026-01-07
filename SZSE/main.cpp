@@ -7,14 +7,8 @@
 #include <unistd.h>
 #include "session.h"
 #include "configuration.h"
-#include "LoggerSingleton.h"
+#include "loggerSingleton.h"
 #include "utility.h"
-
-
-#define LOG_INFO(...) {logger->info(__VA_ARGS__);}
-#define LOG_WARNING(...) {logger->warning(__VA_ARGS__);}
-#define LOG_ERROR(...) {logger->error(__VA_ARGS__);}
-#define LOG_CRITICAL(...) {logger->critical(__VA_ARGS__);}
 
 #define BUFFER_SIZE 1024
 #define TOTAL_STEP  10
@@ -22,13 +16,12 @@
 Configuration cfg = {};
 
 int main(){
-  // LoggerSingleton::getInstance().init("default_loger", "log/SzMd.log");
-  auto logger = spdlog::basic_logger_mt("basic_logger", "log/SzMd.log");
+  // 不知道为啥 一注释掉就core
+  auto logger = spdlog::basic_logger_mt("basic_logger0", "log/SzMd0.log");
   logger->flush_on(spdlog::level::info);
-  LoggerSingleton::getInstance().printLog();
-
   INIReader reader("config.ini");
   if (reader.ParseError() < 0) {
+
     LOG_CRITICAL( "Can't load 'test.ini'");
     return 1;
   }
@@ -60,7 +53,6 @@ int main(){
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_port = htons(cfg.iPort);
   serverAddr.sin_addr.s_addr = inet_addr(cfg.szServerIP);
-  LoggerSingleton::getInstance().printLog();
   if(connect(clientSocket,(sockaddr*)&serverAddr,sizeof(serverAddr)) == -1){
     LOG_CRITICAL("Connection failed");
     close(clientSocket);

@@ -20,6 +20,6 @@ add_executable(SZSE main.cpp
         configuration.cpp
         session.cpp
         utility.cpp
-        LoggerSingleton.cpp)
+        loggerSingleton.cpp)
 
 target_link_libraries(SZSE spdlog pthread)

@@ -2,11 +2,10 @@
 // Created by chend on 2026/1/6.
 //
 
-#include "LoggerSingleton.h"
+#include "loggerSingleton.h"
 
 
-// std::shared_ptr<spdlog::logger> LoggerSingleton::getLogger() {
-std::shared_ptr<int> LoggerSingleton::getLogger() {
+std::shared_ptr<spdlog::logger> LoggerSingleton::getLogger() {
     return logger_;
 }
 
@@ -16,11 +15,12 @@ LoggerSingleton &LoggerSingleton::getInstance() {
 }
 
 LoggerSingleton::~LoggerSingleton() {
-
+    logger_->flush();
 }
 
 LoggerSingleton::LoggerSingleton() {
-    logger_ = std::make_shared<int>(10);
+    logger_ = spdlog::basic_logger_mt("basic_logger", "log/SzMd1.log");
+    logger_->flush_on(spdlog::level::info);
 }
 #if 0
 LoggerSingleton::LoggerSingleton() {
