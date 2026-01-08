@@ -3,11 +3,14 @@
 // Created by dzg on 2025/12/30.
 //
 
-#include <unistd.h>
-#include "session.h"
+// #include <unistd.h>
+
+//sockaddr_in AF_INET connect sockaddr inet_addr
+#include <arpa/inet.h>
+
 #include "configuration.h"
+#include "session.h"
 #include "loggerSingleton.h"
-#include "utility.h"
 
 #define BUFFER_SIZE 1024
 #define TOTAL_STEP  10

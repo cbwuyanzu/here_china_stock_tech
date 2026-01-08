@@ -21,16 +21,6 @@
 //std::transform
 #include <algorithm>
 
-typedef struct {
-    char szServerIP[50];
-    int iPort = 0;
-    char szLocalName[20];
-    char szTargetName[20];
-    int iHeartBeat = 0;;
-    char szPassword[16];
-    char szVersion[32];
-} Configuration;
-
 class INIReader {
 public:
     // Construct INIReader and parse given filename. See ini.h for more info

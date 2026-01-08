@@ -5,8 +5,9 @@
 
 #ifndef SZSE_UTILITY_H
 #define SZSE_UTILITY_H
+//uint32_t
 #include <cstdint>
-#include "session.h"
+#include "types.h"
 
 
 int myRecv(int sock, char* buffer, size_t len);
@@ -24,7 +25,7 @@ inline uint32_t GenerateCheckSum(char* buf, uint32_t len){
 
 char* setLogonHead(void* buffer);
 
-char* serializeLogonBody(const struct v5mdLogonBody &body, void* buffer);
+char* serializeLogonBody(const v5mdLogonBody &body, void* buffer);
 
 char* appendTail(void *buffer, size_t length);
 

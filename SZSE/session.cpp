@@ -3,8 +3,16 @@
 // Created by dzg on 2025/12/30.
 //
 
-#include "loggerSingleton.h"
+// #include <cstdint>
+
+//send
+#include <netinet/in.h>
+
 #include "utility.h"
+#include "session.h"
+#include "loggerSingleton.h"
+#include "host2net.h"
+
 
 int SendLogon(int sock, Configuration config) {
     // MsgLogon msg = {};
@@ -20,10 +28,10 @@ int SendLogon(int sock, Configuration config) {
     appendTail(postail,sizeof(v5mdhead)+sizeof(v5mdLogonBody));
     uint32_t msglen = sizeof(MsgLogon);
     if (send(sock, buf, msglen, 0) == -1) {
-        LOG_INFO("Message send failed");
+        LOG_ERROR("Message send failed");
         return -1;
     } else {
-        LOG_ERROR("Message sent logon");
+        LOG_INFO("Message sent logon");
     }
     return 0;
 }
