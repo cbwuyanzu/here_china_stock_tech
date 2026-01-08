@@ -106,8 +106,8 @@ void OnLogon(const v5mdLogonBody logon) {
     LOG_INFO("SenderCompID:{}",logon.SenderCompID);
     LOG_INFO("TargetCompID:{}", logon.TargetCompID);
     LOG_INFO("HeartBtInt:{}",htn32(logon.HeartBtInt));
-    LOG_INFO("Password:{}", logon.Password);
-    LOG_INFO("DefaultApplVerID:{}", logon.DefaultApplVerID);
+    LOG_INFO("Password:{:.{}}", logon.Password, sizeof(logon.Password));
+    LOG_INFO("DefaultApplVerID:{:.{}}", logon.DefaultApplVerID, sizeof(logon.DefaultApplVerID));
 }
 
 uint32_t hbcount = 0;

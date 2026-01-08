@@ -105,10 +105,10 @@ int deserializeBody(mdData &md,const void* buffer, int length) {
 void showMdData(const mdData & md) {
     LOG_DEBUG("OrigTime:{}",md.OrigTime);
     LOG_DEBUG("ChannelNo:{}",md.ChannelNo);
-    LOG_DEBUG("MDStreamID:{}",md.MDStreamID);
-    LOG_DEBUG("SecurityID:{}",md.SecurityID);
-    LOG_DEBUG("SecurityIDSource:{}",md.SecurityIDSource);
-    LOG_DEBUG("TradingPhaseCode:{}",md.TradingPhaseCode);
+    LOG_DEBUG("MDStreamID:{:.{}}",md.MDStreamID, sizeof(md.MDStreamID));
+    LOG_DEBUG("SecurityID:{:.{}}",md.SecurityID, sizeof(md.SecurityID));
+    LOG_DEBUG("SecurityIDSource:{:.{}}",md.SecurityIDSource, sizeof(md.SecurityIDSource));
+    LOG_DEBUG("TradingPhaseCode:{:.{}}",md.TradingPhaseCode, sizeof(md.TradingPhaseCode));
     LOG_DEBUG("PrevClosePx:{}",md.PrevClosePx);
     LOG_DEBUG("NumTrades:{}",md.NumTrades);
     LOG_DEBUG("TotalVolumeTrade:{}",md.TotalVolumeTrade);
@@ -117,7 +117,7 @@ void showMdData(const mdData & md) {
     LOG_DEBUG("NoMDEntries:{}",md.ExtendFields.NoMDEntries)
     for (int i = 0; i < md.ExtendFields.NoMDEntries; i++) {
         LOG_DEBUG("Record[{}]:",i);
-        LOG_DEBUG("MDEntryType:{}",md.ExtendFields.MDEntryEntity[i].MDEntryType);
+        LOG_DEBUG("MDEntryType:{:.{}}",md.ExtendFields.MDEntryEntity[i].MDEntryType,sizeof(md.ExtendFields.MDEntryEntity[i].MDEntryType));
         LOG_DEBUG("MDEntryPx:{}",md.ExtendFields.MDEntryEntity[i].MDEntryPx);
         LOG_DEBUG("MDEntrySize:{}",md.ExtendFields.MDEntryEntity[i].MDEntrySize);
         LOG_DEBUG("MDPriceLevel:{}",md.ExtendFields.MDEntryEntity[i].MDPriceLevel);
