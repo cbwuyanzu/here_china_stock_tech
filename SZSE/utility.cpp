@@ -2,7 +2,7 @@
 //
 // Created by chend on 2025/12/30.
 //
-#include <iostream>
+
 #include <sys/socket.h>
 #include "utility.h"
 
@@ -14,16 +14,15 @@
 
 
 int myRecv(int sock, char* buffer, size_t len) {
-    LOG_INFO("myRecv ...");
     size_t recvlen = 0;
     int ret = 0;
     while(recvlen < len){
         ret = recv(sock, buffer+recvlen, len-recvlen, 0);
         if(ret < 0){
-            std::cerr << "receive error: " << ret << std::endl;
+            LOG_ERROR("receive error: {}", ret);
             return ret;
         } else if (ret == 0){
-            std::cerr << "connection closed by server" << std::endl;
+            LOG_ERROR("connection closed by server");
             return -1;
         } else {
             recvlen += ret;
@@ -34,7 +33,7 @@ int myRecv(int sock, char* buffer, size_t len) {
 
 int checkBufferLength(int headlength, int bodylength, int taillength, int bufferlength) {
     if (headlength + bodylength + taillength > bufferlength) {
-        std::cerr << "large pack than expectd " << std::endl;
+        LOG_ERROR("large pack than expected");
         return -1;
     }
     return 0;
@@ -44,8 +43,7 @@ int cmpCheckSum(char* buffer, uint32_t bufferLength, char* tail) {
     uint32_t checksum = GenerateCheckSum(buffer, bufferLength );
     uint32_t recvchecksum = htnu32(*(uint32_t *) tail);
     if (checksum != recvchecksum) {
-        std::cerr << "Msg checksum failed\tcalc:" << std::setw(8) << std::setfill('0') << std::hex << checksum <<
-            "\treceived:" << recvchecksum << std::endl;
+        LOG_ERROR("Msg checksum failed\tcalc:{:x}\treceived:{:x}",checksum,recvchecksum);
         return -1;
     }
     return 0;
@@ -72,18 +70,17 @@ char* appendTail(void *buffer, size_t length) {
 }
 
 int deserializeBody(mdData &md,const void* buffer, int length) {
-
     auto *p = static_cast<const mdData*>(buffer);
-
     //这里先做一些包的检查, 以免引起coredump
     uint32_t uNoMDEntries = htnu32(p->ExtendFields.NoMDEntries);
     if ( uNoMDEntries > MAX_MD_ENTRY_NO) {
         return -1;
     }
     if (length != uNoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup) + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md)) {
-        std::cout << "NoMDEntries:\t" << md.ExtendFields.NoMDEntries << std::endl;
-        std::cout << "length:\t" << length << std::endl;
-        std::cout << "Expect length:\t" << md.ExtendFields.NoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup) + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md) << std::endl;
+        LOG_ERROR("NoMDEntries:\t{}\nlength:\t{}\nExpect length:{}",
+            md.ExtendFields.NoMDEntries, length,
+            md.ExtendFields.NoMDEntries * sizeof(MDEntry)+ sizeof(NumInGroup)
+            + reinterpret_cast<char *>(&md.ExtendFields.NoMDEntries) -  reinterpret_cast<char *>(&md));
         return -2;
     }
     memset(&md, 0, sizeof(md));
@@ -106,26 +103,26 @@ int deserializeBody(mdData &md,const void* buffer, int length) {
 }
 
 void showMdData(const mdData & md) {
-    std::cout << "OrigTime:\t" << md.OrigTime << std::endl
-    << "ChannelNo:\t" << md.ChannelNo << std::endl
-    << "MDStreamID:\t" << md.MDStreamID << std::endl
-    << "SecurityID:\t" << md.SecurityID << std::endl
-    << "SecurityIDSource:\t" << md.SecurityIDSource << std::endl
-    << "TradingPhaseCode:\t" << md.TradingPhaseCode << std::endl
-    << "PrevClosePx:\t" << md.PrevClosePx << std::endl
-    << "NumTrades:\t" << md.NumTrades << std::endl
-    << "TotalVolumeTrade:\t" << md.TotalVolumeTrade << std::endl
-    << "TotalValueTrade:\t" << md.TotalValueTrade << std::endl
-    << "ExtendFields:" << std::endl
-    << "NoMDEntries:" << md.ExtendFields.NoMDEntries << std::endl;
+    LOG_DEBUG("OrigTime:{}",md.OrigTime);
+    LOG_DEBUG("ChannelNo:{}",md.ChannelNo);
+    LOG_DEBUG("MDStreamID:{}",md.MDStreamID);
+    LOG_DEBUG("SecurityID:{}",md.SecurityID);
+    LOG_DEBUG("SecurityIDSource:{}",md.SecurityIDSource);
+    LOG_DEBUG("TradingPhaseCode:{}",md.TradingPhaseCode);
+    LOG_DEBUG("PrevClosePx:{}",md.PrevClosePx);
+    LOG_DEBUG("NumTrades:{}",md.NumTrades);
+    LOG_DEBUG("TotalVolumeTrade:{}",md.TotalVolumeTrade);
+    LOG_DEBUG("TotalValueTrade:{}",md.TotalValueTrade);
+    LOG_DEBUG("ExtendFields:");
+    LOG_DEBUG("NoMDEntries:{}",md.ExtendFields.NoMDEntries)
     for (int i = 0; i < md.ExtendFields.NoMDEntries; i++) {
-        std::cout << "Record[" << i << "]:" << std::endl
-        << "MDEntryType:\t" << md.ExtendFields.MDEntryEntity[i].MDEntryType << std::endl
-        << "MDEntryPx:\t" << md.ExtendFields.MDEntryEntity[i].MDEntryPx << std::endl
-        << "MDEntrySize:\t" << md.ExtendFields.MDEntryEntity[i].MDEntrySize<< std::endl
-        << "MDPriceLevel:\t" <<md.ExtendFields.MDEntryEntity[i].MDPriceLevel<< std::endl
-        << "NumberOfOrders:\t" <<md.ExtendFields.MDEntryEntity[i].NumberOfOrders<< std::endl
-        << "NoOrders:\t" <<md.ExtendFields.MDEntryEntity[i].NoOrders<< std::endl;
+        LOG_DEBUG("Record[{}]:",i);
+        LOG_DEBUG("MDEntryType:{}",md.ExtendFields.MDEntryEntity[i].MDEntryType);
+        LOG_DEBUG("MDEntryPx:{}",md.ExtendFields.MDEntryEntity[i].MDEntryPx);
+        LOG_DEBUG("MDEntrySize:{}",md.ExtendFields.MDEntryEntity[i].MDEntrySize);
+        LOG_DEBUG("MDPriceLevel:{}",md.ExtendFields.MDEntryEntity[i].MDPriceLevel);
+        LOG_DEBUG("NumberOfOrders:{}",md.ExtendFields.MDEntryEntity[i].NumberOfOrders);
+        LOG_DEBUG("NoOrders:{}",md.ExtendFields.MDEntryEntity[i].NoOrders);
     }
 }
 

@@ -5,10 +5,9 @@
 #ifndef SZSE_LOGGERSINGLETON_H
 #define SZSE_LOGGERSINGLETON_H
 
-#include <iostream>
-
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 
 class LoggerSingleton {
@@ -29,6 +28,7 @@ private:
 };
 
 #define LOGGER LoggerSingleton::getInstance().getLogger()
+#define LOG_DEBUG(...) {LOGGER->debug(__VA_ARGS__);}
 #define LOG_INFO(...) {LOGGER->info(__VA_ARGS__);}
 #define LOG_WARNING(...) {LOGGER->warning(__VA_ARGS__);}
 #define LOG_ERROR(...) {LOGGER->error(__VA_ARGS__);}

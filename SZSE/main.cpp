@@ -3,7 +3,6 @@
 // Created by dzg on 2025/12/30.
 //
 
-#include <iostream>
 #include <unistd.h>
 #include "session.h"
 #include "configuration.h"
@@ -17,16 +16,15 @@ Configuration cfg = {};
 
 int main(){
   // 不知道为啥 一注释掉就core
-  auto logger = spdlog::basic_logger_mt("basic_logger0", "log/SzMd0.log");
-  logger->flush_on(spdlog::level::info);
+  auto loggerConsole = spdlog::stdout_color_mt("console");
+  loggerConsole->flush_on(spdlog::level::info);
+
+  LOG_INFO("start reading config.ini");
   INIReader reader("config.ini");
   if (reader.ParseError() < 0) {
-
     LOG_CRITICAL( "Can't load 'test.ini'");
     return 1;
   }
-  LOG_INFO("start reading config.ini");
-
   strcpy(cfg.szServerIP, reader.GetString("COMMON", "SERVER_IP", "127.0.0.1").c_str());
   cfg.iPort = reader.GetInteger("COMMON", "SRRVER_MD_PORT", 8888);
   strcpy(cfg.szLocalName, reader.GetString("LOGON", "SENDER_NAME", "DEFAULT_SENDER").c_str());

@@ -3,6 +3,7 @@
 // Created by dzg on 2025/12/30.
 //
 
+#include "loggerSingleton.h"
 #include "utility.h"
 
 int SendLogon(int sock, Configuration config) {
@@ -19,10 +20,10 @@ int SendLogon(int sock, Configuration config) {
     appendTail(postail,sizeof(v5mdhead)+sizeof(v5mdLogonBody));
     uint32_t msglen = sizeof(MsgLogon);
     if (send(sock, buf, msglen, 0) == -1) {
-        std::cerr << "Message send failed" << std::endl;
+        LOG_INFO("Message send failed");
         return -1;
     } else {
-        std::cout << "Message sent logon" << std::endl;
+        LOG_ERROR("Message sent logon");
     }
     return 0;
 }
@@ -33,13 +34,13 @@ int RecvLogon(int sock) {
     ret = myRecv(sock, buffer, sizeof(v5mdhead));
     if (ret <= 0) return -1;
     v5mdhead *hd = (v5mdhead *) buffer;
-    std::cout << "Logon response msgtype\t" << htnu32(hd->MsgType) << std::endl;
-    std::cout << "Logon response datalen\t" << htnu32(hd->BodyLength) << std::endl;
+    LOG_INFO("Logon response msgtype\t{}",htnu32(hd->MsgType));
+    LOG_INFO("Logon response datalen\t{}",htnu32(hd->BodyLength));
     uint32_t msgType = htnu32(hd->MsgType);
     uint32_t bodyLen = htnu32(hd->BodyLength);
     if (msgType != 1 || bodyLen != sizeof(v5mdLogonBody)) {
-        std::cerr << "Logon Response MsgType:[" << msgType << "] BodyLength:[" << bodyLen << "] expected:[1][" << sizeof
-                (v5mdLogonBody) << "]" << std::endl;
+        LOG_ERROR("Logon Response MsgType:[{}] BodyLength:[{}] expected:[1][{}]",
+            msgType, bodyLen, sizeof(v5mdLogonBody));
         return -1;
     }
     char *body = (char *) (hd + 1);
@@ -48,9 +49,9 @@ int RecvLogon(int sock) {
     if (ret <= 0) return -2;
     ret = cmpCheckSum(buffer,sizeof(v5mdhead) + bodyLen, tail);
     if (ret == 0) {
-        std::cout << "Logon checksum passed" << std::endl;
+        LOG_INFO("Logon checksum passed");
     } else {
-        std::cerr << "Logon checksum failed" << std::endl;
+        LOG_ERROR("Logon checksum failed");
         return -1;
     }
     v5mdLogonBody logon = *(v5mdLogonBody *) body;
@@ -76,14 +77,14 @@ int RecvMsg(int sock) {
     }
     ret = checkBufferLength(sizeof(v5mdhead),bodylength,sizeof(v5mdtail),sizeof(buffer));
     if (ret < 0) {
-        std::cout << "Msg received msgtype\t" << msgtype << std::endl;
-        std::cout << "Msg received datalen\t" << bodylength << std::endl;
+        LOG_INFO("Msg received msgtype\t{}", msgtype);
+        LOG_INFO("Msg received datalen\t{}", bodylength);
         return -3;
     }
     ret = cmpCheckSum(buffer, sizeof(v5mdhead) + bodylength,tail);
     if (ret < 0) {
-        std::cerr << "Last Msg received msgtype\t" << std::dec << msgtype << std::endl;
-        std::cerr << "Last Msg received datalen\t" << bodylength << std::endl;
+        LOG_ERROR("Last Msg received msgtype\t{}",msgtype);
+        LOG_ERROR("Last Msg received datalen\t{}",bodylength);
         return -4;
     }
     //TODO 这里还需要再加一些统计次数和耗时
@@ -102,11 +103,11 @@ int RecvMsg(int sock) {
 }
 
 void OnLogon(const v5mdLogonBody logon) {
-    std::cout << "SenderCompID\t" << logon.SenderCompID << std::endl;
-    std::cout << "TargetCompID\t" << logon.TargetCompID << std::endl;
-    std::cout << "HeartBtInt\t" << htn32(logon.HeartBtInt) << std::endl;
-    std::cout << "Password\t" << logon.Password << std::endl;
-    std::cout << "DefaultApplVerID\t" << logon.DefaultApplVerID << std::endl;
+    LOG_INFO("SenderCompID:{}",logon.SenderCompID);
+    LOG_INFO("TargetCompID:{}", logon.TargetCompID);
+    LOG_INFO("HeartBtInt:{}",htn32(logon.HeartBtInt));
+    LOG_INFO("Password:{}", logon.Password);
+    LOG_INFO("DefaultApplVerID:{}", logon.DefaultApplVerID);
 }
 
 uint32_t hbcount = 0;
@@ -114,7 +115,7 @@ uint32_t hbcount = 0;
 void OnHeartBeat() {
     hbcount++;
     if (hbcount % 100 == 0)
-        std::cout << "HeartBeatCount\t" << hbcount << std::endl;
+        LOG_INFO("HeartBeatCount\t{}",hbcount);
 }
 
 uint32_t chhb = 0;
@@ -122,7 +123,7 @@ uint32_t chhb = 0;
 void OnChannelHeartBeat() {
     chhb++;
     if (chhb % 100 == 0)
-        std::cout << "ChannelHeartBeatCount\t" << chhb << std::endl;
+        LOG_INFO("ChannelHeartBeatCount\t{}",chhb);
 }
 
 uint32_t rtmdcount = 0;
@@ -130,10 +131,10 @@ uint32_t rtmdcount = 0;
 void OnRealTimeMD(void* data,int length) {
     rtmdcount++;
     if (rtmdcount % 100 == 0)
-        std::cout << "RealTimeMDCount\t" << rtmdcount << std::endl;
+        LOG_INFO("RealTimeMDCount\t{}",rtmdcount);
     mdData md = {};
     if(deserializeBody(md,data,length)){
-        std::cerr << "deserialize body failed" << std::endl;
+        LOG_ERROR("deserialize body failed");
         return ;
     }
     showMdData(md);

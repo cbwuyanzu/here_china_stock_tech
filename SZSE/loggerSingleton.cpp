@@ -21,6 +21,7 @@ LoggerSingleton::~LoggerSingleton() {
 LoggerSingleton::LoggerSingleton() {
     logger_ = spdlog::basic_logger_mt("basic_logger", "log/SzMd1.log");
     logger_->flush_on(spdlog::level::info);
+    logger_->set_level(spdlog::level::debug);
 }
 #if 0
 LoggerSingleton::LoggerSingleton() {
