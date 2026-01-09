@@ -7,16 +7,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-include_directories(../3rd_lib/include)
+include_directories(../3rd_lib/include ${PROJECT_SOURCE_DIR})
 
-file(READ "/proc/version" PROC_VERSION)
-if(PROC_VERSION MATCHES ".*[Mm]icrosoft.*|.*WSL.*")
-    message(STATUS "Detected WSL environment")
-    link_directories(../3rd_lib/lib_wsl)
-else()
-    message(STATUS "Detected standard Linux environment")
-    link_directories(../3rd_lib/lib)
-endif()
+#file(READ "/proc/version" PROC_VERSION)
+#if(PROC_VERSION MATCHES ".*[Mm]icrosoft.*|.*WSL.*")
+#    message(STATUS "Detected WSL environment")
+#    link_directories(../3rd_lib/lib_wsl)
+#else()
+#    message(STATUS "Detected standard Linux environment")
+#    link_directories(../3rd_lib/lib)
+#endif()
 
 add_executable(SZSE main.cpp
         configuration.cpp
@@ -24,4 +24,9 @@ add_executable(SZSE main.cpp
         utility.cpp
         loggerSingleton.cpp)
 
-target_link_libraries(SZSE spdlog pthread)
+#target_link_libraries(SZSE spdlog pthread)
+target_link_libraries(SZSE pthread)
+
+
+add_executable(logTest ut/logTest.cpp loggerSingleton.cpp)
+target_link_libraries(logTest pthread)

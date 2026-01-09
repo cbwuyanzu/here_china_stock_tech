@@ -17,6 +17,8 @@ struct Configuration{
     int iHeartBeat = 0;;
     char szPassword[16];
     char szVersion[32];
+    char logLevel[32];
+    char logFile[1024];
 } ;
 
 struct v5mdhead{
