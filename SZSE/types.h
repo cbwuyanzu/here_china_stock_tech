@@ -84,4 +84,8 @@ struct mdData {
     Amt TotalValueTrade;
     ExtendFieldType ExtendFields;
 };
+
+//cancel 1 byte pack
+#pragma pack()
+
 #endif //SZSE_TYPES_H

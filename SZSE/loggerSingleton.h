@@ -10,17 +10,17 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-
 class LoggerSingleton {
 public:
     static LoggerSingleton& getInstance();
-
     std::shared_ptr<spdlog::logger> getLogger();
+    void logInit(const char* fileName, const char* logLevel);
     LoggerSingleton(const LoggerSingleton &) = delete;
     LoggerSingleton& operator=(const LoggerSingleton &) = delete;
 
 private:
-    explicit LoggerSingleton(const char* fileName, const char* logLevel="info");
+    // explicit LoggerSingleton(const char* fileName, const char* logLevel="info");
+    explicit LoggerSingleton() = default;
     ~LoggerSingleton();
 
     std::shared_ptr<spdlog::logger> logger_;

@@ -136,7 +136,13 @@ int ini_parse(const char *filename, ini_handler handler, void *user) {
 
 
 
-INIReader::INIReader(const std::string &filename) {
+INIReader::INIReader(const std::string &filename)
+    : _error(0)
+{
+    // 可选：清空 map
+    _values.clear();
+
+    // 解析文件
     _error = ini_parse(filename.c_str(), ValueHandler, this);
 }
 
@@ -229,15 +235,42 @@ std::string INIReader::MakeKey(const std::string &section, const std::string &na
     return key;
 }
 
+// configuration.cpp 中的修复
+
 int INIReader::ValueHandler(void *user, const char *section, const char *name,
                             const char *value) {
-    if (!name) // Happens when INI_CALL_HANDLER_ON_NEW_SECTION enabled
-        return 1;
+    // 1. 检查基本参数
+    if (!name || !user) {
+        return 0;  // 错误
+    }
+
+    // 2. 转换指针并做基本检查
     INIReader *reader = static_cast<INIReader *>(user);
-    std::string key = MakeKey(section, name);
-    if (reader->_values[key].size() > 0)
-        reader->_values[key] += "\n";
-    reader->_values[key] += value ? value : "";
+
+    // 3. 构造 key
+    std::string key;
+    try {
+        key = MakeKey(section, name);
+    } catch (...) {
+        return 0;  // 构造 key 失败
+    }
+
+    // 4. 安全地更新值
+    std::string val = value ? value : "";
+
+    // 使用 find 而不是 operator[]
+    auto it = reader->_values.find(key);
+    if (it != reader->_values.end()) {
+        // 已存在，追加
+        if (!it->second.empty() && !val.empty()) {
+            it->second += "\n";
+        }
+        it->second += val;
+    } else {
+        // 不存在，插入
+        reader->_values.insert(std::make_pair(key, val));
+    }
+
     return 1;
 }
 

@@ -2,10 +2,8 @@
 //
 // Created by dzg on 2025/12/30.
 //
-
 //sockaddr_in AF_INET connect sockaddr inet_addr
 #include <arpa/inet.h>
-
 #include "types.h"
 #include "configuration.h"
 #include "loggerSingleton.h"
@@ -14,11 +12,10 @@
 #define BUFFER_SIZE 1024
 #define TOTAL_STEP  5
 
-Configuration cfg = {};
-LoggerSingleton LoggerSingleton::instance("log/SzMd.log","trace");
+LoggerSingleton LoggerSingleton::instance;
 
 int main() {
-  // 不知道为啥 一注释掉就core
+  Configuration cfg = {};
   auto loggerConsole = spdlog::stdout_color_mt("console");
   loggerConsole->flush_on(spdlog::level::info);
   loggerConsole->info("start reading config.ini");
@@ -28,8 +25,6 @@ int main() {
     return 1;
   }
   loggerConsole->info("finish reading config.ini");
-
-
   strcpy(cfg.szServerIP, reader.GetString("COMMON", "SERVER_IP", "127.0.0.1").c_str());
   cfg.iPort = reader.GetInteger("COMMON", "SRRVER_MD_PORT", 8888);
   strcpy(cfg.szLocalName, reader.GetString("LOGON", "SENDER_NAME", "DEFAULT_SENDER").c_str());
@@ -37,8 +32,11 @@ int main() {
   cfg.iHeartBeat = reader.GetInteger("LOGON", "HEARBEATINT", 30);
   strcpy(cfg.szPassword, reader.GetString("LOGON", "PASSWORD", "DEFAULT_PASSWORD").c_str());
   strcpy(cfg.szVersion, reader.GetString("LOGON", "VERSION", "1.0.0").c_str());
-  strcpy(cfg.logLevel, reader.GetString("LOG", "LOGLEVEL", "info").c_str());
   strcpy(cfg.logFile, reader.GetString("LOG", "LOGFILE", "log/test.log").c_str());
+  strcpy(cfg.logLevel, reader.GetString("LOG", "LOGLEVEL", "info").c_str());
+  loggerConsole->info("cfg.logFile:{}", cfg.logFile);
+  loggerConsole->info("cfg.logLevel:{}", cfg.logLevel);
+  LoggerSingleton::getInstance().logInit( cfg.logFile,cfg.logLevel);
   LOG_INFO("cfg.szServerIP:{}", cfg.szServerIP);
   LOG_INFO("cfg.iPort:{}", cfg.iPort);
   LOG_INFO("cfg.szLocalName:{}", cfg.szLocalName);
@@ -46,10 +44,9 @@ int main() {
   LOG_INFO("cfg.iHeartBeat:{}", cfg.iHeartBeat);
   LOG_INFO("cfg.szPassword:{}", cfg.szPassword);
   LOG_INFO("cfg.szVersion:{}", cfg.szVersion);
-  LOG_INFO("cfg.logLevel:{}", cfg.logLevel);
   LOG_INFO("cfg.logFile:{}", cfg.logFile);
+  LOG_INFO("cfg.logLevel:{}", cfg.logLevel);
 
-  // 创建socket
   int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
   if (clientSocket == -1) {
     LOG_CRITICAL("Socket creation failed");
@@ -86,5 +83,4 @@ int main() {
   LOG_INFO("step:last/{}\tTo Exit bexit=", TOTAL_STEP);
   close(clientSocket);
   return 0;
-
 }

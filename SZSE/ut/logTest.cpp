@@ -5,6 +5,7 @@
 #include <thread>
 #include <vector>
 #include "loggerSingleton.h"
+#include "../loggerSingleton.h"
 
 constexpr int numLoops = 1000000;
 
@@ -14,17 +15,16 @@ void testFuc(int thrdId) {
     }
 }
 
-LoggerSingleton LoggerSingleton::instance("logTest.log","info");
+LoggerSingleton LoggerSingleton::instance;
 
 int main() {
     auto console_logger = spdlog::stdout_color_mt("console");
     console_logger->set_level(spdlog::level::info);
     console_logger->flush_on(spdlog::level::info);
-
+    LoggerSingleton::getInstance().logInit("logTest.log","info");
     constexpr int numThreads = 2;
     std::vector<std::thread> threadList;
     threadList.reserve(numThreads);
-
     console_logger->info("Test start!");
     console_logger->info("numThreads {}",numThreads);
     console_logger->info("numLoops {}",numLoops);
