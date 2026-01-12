@@ -2,13 +2,37 @@
 //
 // Created by chend on 2025/12/30.
 //
+//sockaddr_in AF_INET connect sockaddr inet_addr
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include "utility.h"
 #include "host2net.h"
 #include "loggerSingleton.h"
 
+int myConnect(const char* serverIP,const int port, int &sock_fd) {
+    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket == -1) {
+        LOG_CRITICAL("Socket creation failed");
+        return 1;
+    }
+    sock_fd = clientSocket;
+    // 设置服务器地址
+    sockaddr_in serverAddr{};
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.s_addr = inet_addr(serverIP);
+    if (connect(clientSocket, (sockaddr *) &serverAddr, sizeof(serverAddr)) == -1) {
+        LOG_CRITICAL("Connection failed");
+        close(clientSocket);
+        return 1;
+    }
+    return 0;
+}
 
-
+int myClose(int sock_fd) {
+    close(sock_fd);
+    return 0;
+}
 
 int myRecv(int sock, char* buffer, size_t len) {
     size_t recvlen = 0;

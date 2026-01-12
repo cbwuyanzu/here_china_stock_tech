@@ -2,12 +2,18 @@
 //
 // Created by dzg on 2025/12/30.
 //
-//sockaddr_in AF_INET connect sockaddr inet_addr
-#include <arpa/inet.h>
+
+// dependency comment
+// types.h           -> configuration.h
+// loggerSingleton.h ->
+
+// utility.h -> session.h
+
 #include "types.h"
 #include "configuration.h"
 #include "loggerSingleton.h"
 #include "session.h"
+#include "utility.h"
 
 #define BUFFER_SIZE 1024
 #define TOTAL_STEP  5
@@ -16,56 +22,30 @@ LoggerSingleton LoggerSingleton::instance;
 
 int main() {
   Configuration cfg = {};
-  auto loggerConsole = spdlog::stdout_color_mt("console");
-  loggerConsole->flush_on(spdlog::level::info);
-  loggerConsole->info("start reading config.ini");
-  INIReader reader("config.ini");
-  if (reader.ParseError() < 0) {
-    loggerConsole->critical("Can't load 'test.ini'");
-    return 1;
+  {
+    auto loggerConsole = spdlog::stdout_color_mt("console");
+    loggerConsole->info("start reading config.ini");
+    INIReader reader("config.ini");
+    if (reader.ParseError() < 0) {
+      loggerConsole->critical("Can't load 'test.ini'");
+      return 1;
+    }
+    reader.parstToStruct(cfg);
+    loggerConsole->info("finish reading config.ini");
+    loggerConsole->info("cfg.logFilePath:{}, cfg.logLevel:{}", cfg.logFile, cfg.logLevel);
+    loggerConsole->flush();
+    LoggerSingleton::getInstance().logInit(cfg.logFile,cfg.logLevel);
+    reader.showConfig(cfg);
   }
-  loggerConsole->info("finish reading config.ini");
-  strcpy(cfg.szServerIP, reader.GetString("COMMON", "SERVER_IP", "127.0.0.1").c_str());
-  cfg.iPort = reader.GetInteger("COMMON", "SRRVER_MD_PORT", 8888);
-  strcpy(cfg.szLocalName, reader.GetString("LOGON", "SENDER_NAME", "DEFAULT_SENDER").c_str());
-  strcpy(cfg.szTargetName, reader.GetString("LOGON", "RECEIVER_NAME", "DEFAULT_RECEIVER").c_str());
-  cfg.iHeartBeat = reader.GetInteger("LOGON", "HEARBEATINT", 30);
-  strcpy(cfg.szPassword, reader.GetString("LOGON", "PASSWORD", "DEFAULT_PASSWORD").c_str());
-  strcpy(cfg.szVersion, reader.GetString("LOGON", "VERSION", "1.0.0").c_str());
-  strcpy(cfg.logFile, reader.GetString("LOG", "LOGFILE", "log/test.log").c_str());
-  strcpy(cfg.logLevel, reader.GetString("LOG", "LOGLEVEL", "info").c_str());
-  loggerConsole->info("cfg.logFile:{}", cfg.logFile);
-  loggerConsole->info("cfg.logLevel:{}", cfg.logLevel);
-  LoggerSingleton::getInstance().logInit( cfg.logFile,cfg.logLevel);
-  LOG_INFO("cfg.szServerIP:{}", cfg.szServerIP);
-  LOG_INFO("cfg.iPort:{}", cfg.iPort);
-  LOG_INFO("cfg.szLocalName:{}", cfg.szLocalName);
-  LOG_INFO("cfg.szTargetName:{}", cfg.szTargetName);
-  LOG_INFO("cfg.iHeartBeat:{}", cfg.iHeartBeat);
-  LOG_INFO("cfg.szPassword:{}", cfg.szPassword);
-  LOG_INFO("cfg.szVersion:{}", cfg.szVersion);
-  LOG_INFO("cfg.logFile:{}", cfg.logFile);
-  LOG_INFO("cfg.logLevel:{}", cfg.logLevel);
 
-  int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-  if (clientSocket == -1) {
-    LOG_CRITICAL("Socket creation failed");
-    return 1;
-  }
-  // 设置服务器地址
-  sockaddr_in serverAddr;
-  serverAddr.sin_family = AF_INET;
-  serverAddr.sin_port = htons(cfg.iPort);
-  serverAddr.sin_addr.s_addr = inet_addr(cfg.szServerIP);
-  if (connect(clientSocket, (sockaddr *) &serverAddr, sizeof(serverAddr)) == -1) {
-    LOG_CRITICAL("Connection failed");
-    close(clientSocket);
-    return 1;
+  int clientSocket = 0;
+  if (myConnect(cfg.szServerIP,cfg.iPort, clientSocket)) {
+    LOG_CRITICAL("step:1 myConnect failed");
   }
   LOG_INFO("step:1/{}\tConnect to server", TOTAL_STEP);
 
-  if (SendLogon(clientSocket, cfg) != 0) {
-    LOG_CRITICAL("Logon failed");
+  if (SendLogon(clientSocket, cfg.reqLogon) != 0) {
+    LOG_CRITICAL("step:2 Logon failed");
     return 2;
   }
   LOG_INFO("step:2/{}\tLogon Send", TOTAL_STEP);
@@ -81,6 +61,6 @@ int main() {
     bexit = RecvMsg(clientSocket);
   }
   LOG_INFO("step:last/{}\tTo Exit bexit=", TOTAL_STEP);
-  close(clientSocket);
+  myClose(clientSocket);
   return 0;
 }

@@ -21,6 +21,20 @@
 //std::transform
 #include <algorithm>
 
+#include "types.h"
+#include "loggerSingleton.h"
+
+#pragma pack(1)
+struct Configuration{
+    char szServerIP[50]{};
+    int iPort = 0;
+    ReqLogon reqLogon;
+    char logLevel[32]{};
+    char logFile[1024]{};
+} ;
+#pragma pack()
+
+
 class INIReader {
 public:
     // Construct INIReader and parse given filename. See ini.h for more info
@@ -31,6 +45,10 @@ public:
     // first error on parse error, -1 on file open error, or -2 if there was a
     // memory allocation error.
     int ParseError() const;
+
+    int parstToStruct(Configuration &cfg) const;
+
+    void showConfig(const Configuration &cfg) const;
 
     // Return a message that describes the type of error that occurred.
     // It will return "" (empty string) if there was no error.
@@ -60,6 +78,8 @@ public:
     // Get an unsigned 64-bit integer (uint64_t) value from INI file, returning default_value if
     // not found or not a valid unsigned integer (decimal "1234", or hex "0x4d2").
     uint64_t GetUnsigned64(const std::string &section, const std::string &name, uint64_t default_value) const;
+
+
 
 protected:
     int _error;

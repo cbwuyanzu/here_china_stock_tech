@@ -150,6 +150,32 @@ int INIReader::ParseError() const {
     return _error;
 }
 
+int INIReader::parstToStruct(Configuration &cfg) const {
+    strcpy(cfg.szServerIP, GetString("COMMON", "SERVER_IP", "127.0.0.1").c_str());
+    cfg.iPort = GetInteger("COMMON", "SRRVER_MD_PORT", 8888);
+    strcpy(cfg.reqLogon.szLocalName, GetString("LOGON", "SENDER_NAME", "DEFAULT_SENDER").c_str());
+    strcpy(cfg.reqLogon.szTargetName, GetString("LOGON", "RECEIVER_NAME", "DEFAULT_RECEIVER").c_str());
+    cfg.reqLogon.iHeartBeat = GetInteger("LOGON", "HEARBEATINT", 30);
+    strcpy(cfg.reqLogon.szPassword, GetString("LOGON", "PASSWORD", "DEFAULT_PASSWORD").c_str());
+    strcpy(cfg.reqLogon.szVersion, GetString("LOGON", "VERSION", "1.0.0").c_str());
+    strcpy(cfg.logFile, GetString("LOG", "LOGFILE", "log/test.log").c_str());
+    strcpy(cfg.logLevel, GetString("LOG", "LOGLEVEL", "info").c_str());
+    return 0;
+}
+
+void INIReader::showConfig(const Configuration &cfg) const {
+    LOG_INFO("cfg.szServerIP:{}", cfg.szServerIP);
+    LOG_INFO("cfg.iPort:{}", cfg.iPort);
+    LOG_INFO("cfg.szLocalName:{}", cfg.reqLogon.szLocalName);
+    LOG_INFO("cfg.szTargetName:{}", cfg.reqLogon.szTargetName);
+    LOG_INFO("cfg.iHeartBeat:{}", cfg.reqLogon.iHeartBeat);
+    LOG_INFO("cfg.szPassword:{}", cfg.reqLogon.szPassword);
+    LOG_INFO("cfg.szVersion:{}", cfg.reqLogon.szVersion);
+    LOG_INFO("cfg.logFile:{}", cfg.logFile);
+    LOG_INFO("cfg.logLevel:{}", cfg.logLevel);
+}
+
+
 std::string INIReader::ParseErrorMessage() const {
     // If _error is positive it means it is the line number on which a parse
     // error occurred. This could be an overlong line, that ValueHandler

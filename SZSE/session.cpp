@@ -3,25 +3,21 @@
 // Created by dzg on 2025/12/30.
 //
 
-// #include <cstdint>
-
 //send
 #include <netinet/in.h>
-
-#include "utility.h"
-#include "session.h"
 #include "loggerSingleton.h"
 #include "host2net.h"
+#include "utility.h"
+#include "session.h"
 
-
-int SendLogon(int sock, Configuration config) {
+int SendLogon(int sock, ReqLogon reqLogon) {
     // MsgLogon msg = {};
     v5mdLogonBody body = {};
-    strcpy(body.SenderCompID, config.szLocalName);
-    strcpy(body.TargetCompID, config.szTargetName);
-    body.HeartBtInt = config.iHeartBeat;
-    strcpy(body.Password, config.szPassword);
-    strcpy(body.DefaultApplVerID, config.szVersion);
+    strcpy(body.SenderCompID, reqLogon.szLocalName);
+    strcpy(body.TargetCompID, reqLogon.szTargetName);
+    body.HeartBtInt = reqLogon.iHeartBeat;
+    strcpy(body.Password, reqLogon.szPassword);
+    strcpy(body.DefaultApplVerID, reqLogon.szVersion);
     char buf[1024] = {};
     char* posbody = setLogonHead(buf);
     char* postail = serializeLogonBody(body,posbody);

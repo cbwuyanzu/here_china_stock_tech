@@ -12,7 +12,9 @@ LoggerSingleton &LoggerSingleton::getInstance() {
 }
 
 LoggerSingleton::~LoggerSingleton() {
+    logger_->flush();
 }
+
 
 void LoggerSingleton::logInit(const char* fileName, const char* logLevel) {
     // logger_ = spdlog::basic_logger_mt("basic_logger", fileName);

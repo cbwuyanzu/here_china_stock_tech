@@ -5,10 +5,12 @@
 
 #ifndef SZSE_UTILITY_H
 #define SZSE_UTILITY_H
-//uint32_t
-#include <cstdint>
+
 #include "types.h"
 
+int myConnect(const char* serverIP,const int port, int &sock_fd);
+
+int myClose(int sock_fd);
 
 int myRecv(int sock, char* buffer, size_t len);
 

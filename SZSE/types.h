@@ -8,18 +8,16 @@
 #pragma pack(1)
 //二进制解包 必须字节对齐
 #define MAX_MD_ENTRY_NO 30
+#include <cstdint>
 
-struct Configuration{
-    char szServerIP[50];
-    int iPort = 0;
-    char szLocalName[20];
-    char szTargetName[20];
+struct ReqLogon {
+    char szLocalName[20]{};
+    char szTargetName[20]{};
     int iHeartBeat = 0;;
-    char szPassword[16];
-    char szVersion[32];
-    char logLevel[32];
-    char logFile[1024];
-} ;
+    char szPassword[16]{};
+    char szVersion[32]{};
+};
+
 
 struct v5mdhead{
     uint32_t MsgType;

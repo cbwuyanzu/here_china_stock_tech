@@ -8,7 +8,7 @@
 
 #include "types.h"
 
-int SendLogon(int sock, Configuration config);
+int SendLogon(int sock, ReqLogon config);
 
 int RecvLogon(int sock);
 
