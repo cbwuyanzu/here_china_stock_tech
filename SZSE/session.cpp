@@ -9,6 +9,9 @@
 #include "host2net.h"
 #include "utility.h"
 #include "session.h"
+#include "szMdParser.h"
+
+extern  SZMDParser szMDParser;
 
 int SendLogon(int sock, ReqLogon reqLogon) {
     // MsgLogon msg = {};
@@ -136,11 +139,12 @@ void OnRealTimeMD(void* data,int length) {
     rtmdcount++;
     if (rtmdcount % 100 == 0)
         LOG_INFO("RealTimeMDCount\t{}",rtmdcount);
-    mdData md = {};
-    if(deserializeBody(md,data,length)){
+    RawSzMDData md = {};
+    if(deserializeBody(md,data,length)) {
         LOG_ERROR("deserialize body failed");
         return ;
     }
+    szMDParser.parseNL(md);
     showMdData(md);
 }
 /*Standard Header 消息头

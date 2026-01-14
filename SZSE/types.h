@@ -69,7 +69,7 @@ struct ExtendFieldType {
 };
 // };
 
-struct mdData {
+struct RawSzMDData {
     LocalTimeStamp OrigTime;
     uint16_t ChannelNo;
     char MDStreamID[3];
@@ -81,6 +81,26 @@ struct mdData {
     Qty TotalVolumeTrade;
     Amt TotalValueTrade;
     ExtendFieldType ExtendFields;
+};
+
+enum class SzseEntry {
+    BidPrice = 0,    // 买入
+    AskPrice = 1,    // 卖出
+    LastPrice = 2,   // 最近价
+    OpenPrice = 4,   // 开盘价
+    HighPrice = 7,   // 最高价
+    LowPrice = 8,    // 最低价
+};
+
+constexpr int NUM_FILED_SIZE = 10;
+
+struct MyMDDataItem {
+    int marketCode;
+    int stockCode;
+    char stockName[20];
+    int price[NUM_FILED_SIZE];
+    long long origTime;
+    long long updateTime;
 };
 
 //cancel 1 byte pack

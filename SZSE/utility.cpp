@@ -90,8 +90,8 @@ char* appendTail(void *buffer, size_t length) {
     return static_cast<char *>(buffer);
 }
 
-int deserializeBody(mdData &md,const void* buffer, int length) {
-    auto *p = static_cast<const mdData*>(buffer);
+int deserializeBody(RawSzMDData &md,const void* buffer, int length) {
+    auto *p = static_cast<const RawSzMDData*>(buffer);
     //这里先做一些包的检查, 以免引起coredump
     uint32_t uNoMDEntries = htnu32(p->ExtendFields.NoMDEntries);
     if ( uNoMDEntries > MAX_MD_ENTRY_NO) {
@@ -123,7 +123,7 @@ int deserializeBody(mdData &md,const void* buffer, int length) {
     return 0;
 }
 
-void showMdData(const mdData & md) {
+void showMdData(const RawSzMDData & md) {
     LOG_DEBUG("OrigTime:{}",md.OrigTime);
     LOG_DEBUG("ChannelNo:{}",md.ChannelNo);
     LOG_DEBUG("MDStreamID:{:.{}}",md.MDStreamID, sizeof(md.MDStreamID));
@@ -147,3 +147,42 @@ void showMdData(const mdData & md) {
     }
 }
 
+
+int fixedCharToInt(const char* str, std::size_t len) {
+    int result = 0;
+    for (std::size_t i = 0; i < len; ++i) {
+        // 确保是数字字符
+        if (str[i] < '0' || str[i] > '9') {
+            // 简单处理：遇到非数字停止
+            // 也可选择抛出异常或返回特定错误码
+            break;
+        }
+        result = result * 10 + (str[i] - '0');
+    }
+    return result;
+}
+
+long long getTimestampAsLongLong() {
+    using namespace std::chrono;
+
+    // 获取当前时间（毫秒精度）
+    auto now = system_clock::now();
+    auto ms = duration_cast<milliseconds>(now.time_since_epoch());
+    time_t sec = ms.count() / 1000;
+    int millis = ms.count() % 1000;
+
+    // 获取本地时间结构体（线程安全版本）
+    struct tm timeinfo;
+    localtime_r(&sec, &timeinfo);
+
+    // 直接计算long long值（避免字符串转换）
+    long long result = (timeinfo.tm_year + 1900LL) * 10000000000000LL; // 年
+    result += (timeinfo.tm_mon + 1) * 100000000000LL;                 // 月
+    result += timeinfo.tm_mday * 1000000000LL;                        // 日
+    result += timeinfo.tm_hour * 10000000LL;                          // 时
+    result += timeinfo.tm_min * 100000LL;                             // 分
+    result += timeinfo.tm_sec * 1000LL;                               // 秒
+    result += millis;                                                 // 毫秒
+
+    return result;
+}

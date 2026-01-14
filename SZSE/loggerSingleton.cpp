@@ -19,6 +19,7 @@ LoggerSingleton::~LoggerSingleton() {
 void LoggerSingleton::logInit(const char* fileName, const char* logLevel) {
     // logger_ = spdlog::basic_logger_mt("basic_logger", fileName);
     spdlog::init_thread_pool(32768, 1);
+    spdlog::flush_every(std::chrono::seconds(10));
     logger_ = spdlog::basic_logger_mt<spdlog::async_factory>(
              "async_logger", fileName);
     logger_->set_pattern("%Y-%m-%d %H:%M:%S.%f|%n|%l|%P|%t|%v");
@@ -33,6 +34,8 @@ void LoggerSingleton::logInit(const char* fileName, const char* logLevel) {
     }
     logger_->set_level(logLevel_);
     logger_->flush_on(spdlog::level::err);
+    logger_->flush_on(spdlog::level::critical);
+
 }
 #if 0
     // 1t Average Speed 285.53 lines/ms

@@ -12,7 +12,7 @@ int myConnect(const char* serverIP,const int port, int &sock_fd);
 
 int myClose(int sock_fd);
 
-int myRecv(int sock, char* buffer, size_t len);
+int myRecv(int sock, char* buffer, std::size_t len);
 
 int checkBufferLength(int headlength, int bodylength, int taillength, int bufferlength);
 
@@ -29,10 +29,14 @@ char* setLogonHead(void* buffer);
 
 char* serializeLogonBody(const v5mdLogonBody &body, void* buffer);
 
-char* appendTail(void *buffer, size_t length);
+char* appendTail(void *buffer, std::size_t length);
 
-int deserializeBody(mdData &md,const void* buffer, int length);
+int deserializeBody(RawSzMDData &md,const void* buffer, int length);
 
-void showMdData(const mdData & md);
+void showMdData(const RawSzMDData & md);
+
+int fixedCharToInt(const char* str, std::size_t len);
+
+long long getTimestampAsLongLong();
 
 #endif //SZSE_UTILITY_H
