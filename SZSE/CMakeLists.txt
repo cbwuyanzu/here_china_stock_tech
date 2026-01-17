@@ -23,11 +23,16 @@ add_executable(SZSE main.cpp
         session.cpp
         utility.cpp
         loggerSingleton.cpp
-        szMdParser.cpp)
+        szMdParser.cpp
+        threadFuncs.cpp
+        myFIFOQueue.cpp
+)
 
 #target_link_libraries(SZSE spdlog pthread)
 target_link_libraries(SZSE pthread)
 
-
 add_executable(logTest ut/logTest.cpp loggerSingleton.cpp)
+target_link_libraries(logTest pthread)
+
+add_executable(queueTest ut/queueSingleProduceConsumerTest.cpp myFIFOQueue.cpp)
 target_link_libraries(logTest pthread)

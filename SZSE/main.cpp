@@ -12,12 +12,11 @@
 #include "types.h"
 #include "configuration.h"
 #include "loggerSingleton.h"
-#include "session.h"
-#include "utility.h"
+#include "threadFuncs.h"
 
 #define BUFFER_SIZE 1024
-#define TOTAL_STEP  5
 
+int exitFlag = 0;
 LoggerSingleton LoggerSingleton::instance;
 
 int main() {
@@ -37,30 +36,22 @@ int main() {
     LoggerSingleton::getInstance().logInit(cfg.logFile,cfg.logLevel);
     reader.showConfig(cfg);
   }
-
-  int clientSocket = 0;
-  if (myConnect(cfg.szServerIP,cfg.iPort, clientSocket)) {
-    LOG_CRITICAL("step:1 myConnect failed");
+  std::thread szIoThread(szIoThreadFunc,cfg);
+  char cmd = 0;
+  printCmd();
+  while (!exitFlag) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    scanf("%c",&cmd);
+    switch (cmd) {
+      case 'q':
+      case 'Q':
+        exitFlag = 1;
+        cmd = 0;
+        break;
+      default:
+        ;
+    }
   }
-  LOG_INFO("step:1/{}\tConnect to server", TOTAL_STEP);
-
-  if (SendLogon(clientSocket, cfg.reqLogon) != 0) {
-    LOG_CRITICAL("step:2 Logon failed");
-    return 2;
-  }
-  LOG_INFO("step:2/{}\tLogon Send", TOTAL_STEP);
-
-  if (RecvLogon(clientSocket) != 0) {
-    LOG_CRITICAL("Logon failed");
-    return 3;
-  }
-  LOG_INFO("step:3/{}\tLogon Done", TOTAL_STEP);
-  LOG_INFO("step:4/{}\tStart Receive MarketData", TOTAL_STEP);
-  int bexit = 0;
-  while (bexit == 0) {
-    bexit = RecvMsg(clientSocket);
-  }
-  LOG_INFO("step:last/{}\tTo Exit bexit=", TOTAL_STEP);
-  myClose(clientSocket);
+  szIoThread.join();
   return 0;
 }

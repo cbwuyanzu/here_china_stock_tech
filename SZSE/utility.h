@@ -39,4 +39,6 @@ int fixedCharToInt(const char* str, std::size_t len);
 
 long long getTimestampAsLongLong();
 
+void printCmd();
+
 #endif //SZSE_UTILITY_H

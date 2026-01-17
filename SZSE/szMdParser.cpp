@@ -6,38 +6,73 @@
 #include "utility.h"
 
 
-SZMDParser::SZMDParser() {
-    myMDDataList.reserve(10 * 000000);
+SZMDParser::SZMDParser() = default;
+
+int SZMDParser::makeKey(const int marketCode, const int stockCode) {
+    if (stockCode >= 1000000) return -1;
+    int index = marketCode * 1000000 + stockCode;
+    return index;
 }
+
+MyMDItem SZMDParser::makeElement(const int marketCode, const int stockCode) {
+    MyMDItem mdItem = {marketCode, stockCode};
+    return mdItem;
+}
+
 
 int SZMDParser::savePxNL(const int marketCode, const int stockCode, const int entryType, const int value) {
-    if (stockCode >= 1000000) return 1;
-    int index = marketCode * 1000000 + stockCode;
-    myMDDataList[index].price[entryType] = value;
+    int index = makeKey(marketCode, stockCode);
+    if (index < 0) return -1;
+    auto it = myMDMap.find(index);
+    if (it == myMDMap.end()) {
+        MyMDItem mdItem = makeElement(marketCode, stockCode);
+        mdItem.price[entryType] = value;
+        myMDMap.insert({index,mdItem});
+    } else {
+        it->second.price[entryType] = value;
+    }
     return 0;
 }
 
-
 int SZMDParser::loadPxNL(const int marketCode, const int stockCode, const int entryType, int &value) {
-    if (stockCode >= 1000000) return 1;
-    int index = marketCode * 1000000 + stockCode;
-    value = myMDDataList[index].price[entryType];
-    return 0;
+    int index = makeKey(marketCode, stockCode);
+    if (index < 0) return -2;
+    auto it = myMDMap.find(index);
+    if (it != myMDMap.end()) {
+        return it->second.price[entryType];
+    }
+    return -1;
 }
 
 int SZMDParser::saveOrigTimeNL(const int marketCode,const int stockCode,const long long origTime) {
-    if (stockCode >= 1000000) return 1;
-    int index = marketCode * 1000000 + stockCode;
-    myMDDataList[index].origTime = origTime;
-    myMDDataList[index].updateTime = getTimestampAsLongLong();
+    int index = makeKey(marketCode, stockCode);
+    if (index < 0) return -1;
+    auto it = myMDMap.find(index);
+    if (it == myMDMap.end()) {
+        MyMDItem mdItem = makeElement(marketCode, stockCode);
+        mdItem.origTime = origTime;
+        mdItem.updateTime = getTimestampAsLongLong();
+        myMDMap.insert({index,mdItem});
+    } else {
+        it->second.origTime = origTime;
+        it->second.updateTime = getTimestampAsLongLong();
+    }
     return 0;
 }
 
 int SZMDParser::saveMktStkCode(const int marketCode, const int stockCode) {
-    if (stockCode >= 1000000) return 1;
-    int index = marketCode * 1000000 + stockCode;
-    myMDDataList[index].marketCode = marketCode;
-    myMDDataList[index].stockCode = stockCode;
+    int index = makeKey(marketCode, stockCode);
+    if (index < 0) return -1;
+    auto it = myMDMap.find(index);
+    if (it == myMDMap.end()) {
+        MyMDItem mdItem = makeElement(marketCode, stockCode);
+        mdItem.marketCode = marketCode;
+        mdItem.stockCode = stockCode;
+        myMDMap.insert({index,mdItem});
+    } else {
+        it->second.marketCode = marketCode;
+        it->second.stockCode = stockCode;
+    }
     return 0;
 }
 
@@ -45,8 +80,12 @@ int SZMDParser::parseNL(const RawSzMDData &mdData)  {
     constexpr int marketCode = 2;
     int stockCode = fixedCharToInt(mdData.SecurityID, sizeof(SecurityIDType));
     if (stockCode >= 1000000) return 1;
-    saveMktStkCode(marketCode,stockCode);
-    saveOrigTimeNL(marketCode,stockCode,mdData.OrigTime);
+    if (saveMktStkCode(marketCode,stockCode) < 0) {
+
+    }
+    if (saveOrigTimeNL(marketCode,stockCode,mdData.OrigTime) < 0) {
+
+    }
     for (int i = 0; i < mdData.ExtendFields.NoMDEntries; i++) {
         char charEntryType = mdData.ExtendFields.MDEntryEntity[i].MDEntryType[0];
         if (charEntryType < '0' || charEntryType > '9' ) {
@@ -57,7 +96,9 @@ int SZMDParser::parseNL(const RawSzMDData &mdData)  {
             //买卖2-5暂时不支持
             continue;
         }
-        savePxNL(marketCode, stockCode, charEntryType-'0', mdData.ExtendFields.MDEntryEntity[i].MDEntryPx);
+        if (savePxNL(marketCode, stockCode, charEntryType-'0', mdData.ExtendFields.MDEntryEntity[i].MDEntryPx) < 0) {
+
+        }
     }
     return 0;
 }

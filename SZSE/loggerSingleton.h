@@ -21,7 +21,7 @@ public:
 private:
     // explicit LoggerSingleton(const char* fileName, const char* logLevel="info");
     explicit LoggerSingleton() = default;
-    ~LoggerSingleton();
+    ~LoggerSingleton() = default;
 
     std::shared_ptr<spdlog::logger> logger_;
     static LoggerSingleton instance;

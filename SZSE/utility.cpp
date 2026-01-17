@@ -186,3 +186,10 @@ long long getTimestampAsLongLong() {
 
     return result;
 }
+
+void printCmd() {
+    printf("press your cmd:\n");
+    printf("  q/Q      quit\n");
+    printf("  q/Q      quit\n");
+    printf("  q/Q      quit\n");
+}

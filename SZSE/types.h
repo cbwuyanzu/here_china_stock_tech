@@ -94,7 +94,7 @@ enum class SzseEntry {
 
 constexpr int NUM_FILED_SIZE = 10;
 
-struct MyMDDataItem {
+struct MyMDItem {
     int marketCode;
     int stockCode;
     char stockName[20];
