@@ -26,6 +26,7 @@ add_executable(SZSE main.cpp
         szMdParser.cpp
         threadFuncs.cpp
         myFIFOQueue.cpp
+        business.cpp
 )
 
 #target_link_libraries(SZSE spdlog pthread)
@@ -35,4 +36,4 @@ add_executable(logTest ut/logTest.cpp loggerSingleton.cpp)
 target_link_libraries(logTest pthread)
 
 add_executable(queueTest ut/queueSingleProduceConsumerTest.cpp myFIFOQueue.cpp)
-target_link_libraries(logTest pthread)
+target_link_libraries(queueTest pthread)

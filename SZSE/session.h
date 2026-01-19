@@ -6,9 +6,10 @@
 #ifndef SZSE_SESSION_H
 #define SZSE_SESSION_H
 
+#include "myFIFOQueue.h"
 #include "types.h"
 
-int SendLogon(int sock, ReqLogon config);
+int SendLogon(int sock, ReqLogonCfg config);
 
 int RecvLogon(int sock);
 
@@ -18,8 +19,11 @@ void OnLogon(v5mdLogonBody logon);
 
 void OnHeartBeat();
 
-void  OnChannelHeartBeat();
+void OnChannelHeartBeat();
 
-void OnRealTimeMD(void* data, int length);
+char* setLogonHead(void* buffer);
+
+char* serializeLogonBody(const v5mdLogonBody &body, void* buffer);
+
 
 #endif

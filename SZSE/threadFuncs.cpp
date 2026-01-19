@@ -2,8 +2,9 @@
 // Created by chend on 2026/1/15.
 //
 #include "threadFuncs.h"
-extern int exitFlag;
+#include "business.h"
 
+extern int exitFlag;
 
 void szIoThreadFunc(Configuration cfg) {
     constexpr int TOTAL_STEP  = 5;
@@ -36,4 +37,13 @@ void szIoThreadFunc(Configuration cfg) {
     }
     LOG_INFO("step:last/{}\tTo Exit", TOTAL_STEP);
     myClose(clientSocket);
+}
+
+
+void szBusinessThreadFunc(Configuration cfg) {
+    LOG_INFO("szBusinessThreadFunc running");
+    while (!exitFlag) {
+        //不用sleep了, 因为pop中含了wait_for
+        popAndParse(cfg.popTimeout);
+    }
 }

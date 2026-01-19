@@ -10,25 +10,30 @@
 #define MAX_MD_ENTRY_NO 30
 #include <cstdint>
 
-struct ReqLogon {
-    char szLocalName[20]{};
-    char szTargetName[20]{};
-    int iHeartBeat = 0;;
-    char szPassword[16]{};
-    char szVersion[32]{};
+using CompId = char[20];
+using NumInGroup = uint32_t;
+using LocalTimeStamp = int64_t;
+using SecurityIDType = char[8];
+using Price = int64_t;
+using Qty = int64_t;
+using Amt = int64_t;
+
+struct ReqLogonCfg {
+    char szLocalName[20];
+    char szTargetName[20];
+    int iHeartBeat = 0;
+    char szPassword[16];
+    char szVersion[32];
 };
 
-
-struct v5mdhead{
+struct v5MDHead{
     uint32_t MsgType;
     uint32_t BodyLength;
 };
 
-struct v5mdtail{
+struct v5MDTail{
     uint32_t Checksum;
 };
-
-using CompId = char[20];
 
 struct v5mdLogonBody{
     CompId SenderCompID;
@@ -38,19 +43,11 @@ struct v5mdLogonBody{
     char DefaultApplVerID[32];
 };
 
-struct MsgLogon{
-    v5mdhead head;
+struct MsgReqLogon{
+    v5MDHead head;
     v5mdLogonBody body;
-    v5mdtail tail;
+    v5MDTail tail;
 };
-
-using NumInGroup = uint32_t;
-
-using LocalTimeStamp = int64_t;
-using SecurityIDType = char[8];
-using Price = int64_t;
-using Qty = int64_t;
-using Amt = int64_t;
 
 struct MDEntry{
     char MDEntryType[2];
@@ -62,12 +59,10 @@ struct MDEntry{
     // Qty OrderQty;
 };
 
-//union ExtendFieldType {
 struct ExtendFieldType {
-    NumInGroup NoMDEntries{};
-    MDEntry MDEntryEntity[MAX_MD_ENTRY_NO]{};
+    NumInGroup NoMDEntries;
+    MDEntry MDEntryEntity[MAX_MD_ENTRY_NO];
 };
-// };
 
 struct RawSzMDData {
     LocalTimeStamp OrigTime;
@@ -82,6 +77,17 @@ struct RawSzMDData {
     Amt TotalValueTrade;
     ExtendFieldType ExtendFields;
 };
+
+union v5RecvMsgBody {
+    RawSzMDData r300111;
+    char charArray[4096];
+};
+
+struct v5QueueData {
+    v5MDHead parsedHead;
+    v5RecvMsgBody notParsedBody;
+};
+
 
 enum class SzseEntry {
     BidPrice = 0,    // 买入
@@ -102,6 +108,9 @@ struct MyMDItem {
     long long origTime;
     long long updateTime;
 };
+
+
+
 
 //cancel 1 byte pack
 #pragma pack()

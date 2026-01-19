@@ -149,4 +149,6 @@ bool MyFifoQueue<T>::try_pop_v_np(std::vector<T> &items, int timeout_ms,int &tim
     lock.unlock();
     return !items.empty();
 }
+
 template class MyFifoQueue<RawSzMDData>;
+template class MyFifoQueue<v5QueueData>;

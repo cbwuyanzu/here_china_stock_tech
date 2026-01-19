@@ -10,4 +10,6 @@
 
 void szIoThreadFunc(Configuration cfg);
 
+void szBusinessThreadFunc(Configuration cfg);
+
 #endif //SZSE_THREADFUNCS_H

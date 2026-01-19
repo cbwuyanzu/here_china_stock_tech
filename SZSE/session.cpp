@@ -6,15 +6,13 @@
 //send
 #include <netinet/in.h>
 #include "loggerSingleton.h"
-#include "host2net.h"
 #include "utility.h"
 #include "session.h"
-#include "szMdParser.h"
 
-extern  SZMDParser szMDParser;
+MyFifoQueue<v5QueueData> queueForSZMarketData;
 
-int SendLogon(int sock, ReqLogon reqLogon) {
-    // MsgLogon msg = {};
+int SendLogon(int sock, ReqLogonCfg reqLogon) {
+    // MsgReqLogon msg = {};
     v5mdLogonBody body = {};
     strcpy(body.SenderCompID, reqLogon.szLocalName);
     strcpy(body.TargetCompID, reqLogon.szTargetName);
@@ -24,8 +22,8 @@ int SendLogon(int sock, ReqLogon reqLogon) {
     char buf[1024] = {};
     char* posbody = setLogonHead(buf);
     char* postail = serializeLogonBody(body,posbody);
-    appendTail(postail,sizeof(v5mdhead)+sizeof(v5mdLogonBody));
-    uint32_t msglen = sizeof(MsgLogon);
+    appendTail(postail,sizeof(v5MDHead)+sizeof(v5mdLogonBody));
+    uint32_t msglen = sizeof(MsgReqLogon);
     if (send(sock, buf, msglen, 0) == -1) {
         LOG_ERROR("Message send failed");
         return -1;
@@ -38,9 +36,9 @@ int SendLogon(int sock, ReqLogon reqLogon) {
 int RecvLogon(int sock) {
     char buffer[1024] = {0};
     int ret = 0;
-    ret = myRecv(sock, buffer, sizeof(v5mdhead));
+    ret = myRecv(sock, buffer, sizeof(v5MDHead));
     if (ret <= 0) return -1;
-    v5mdhead *hd = (v5mdhead *) buffer;
+    auto *hd = reinterpret_cast<v5MDHead *>(buffer);
     LOG_INFO("Logon response msgtype\t{}",htnu32(hd->MsgType));
     LOG_INFO("Logon response datalen\t{}",htnu32(hd->BodyLength));
     uint32_t msgType = htnu32(hd->MsgType);
@@ -52,9 +50,9 @@ int RecvLogon(int sock) {
     }
     char *body = (char *) (hd + 1);
     char *tail = (char *) (body + bodyLen);
-    ret = myRecv(sock,body,bodyLen + sizeof(v5mdtail));
+    ret = myRecv(sock,body,bodyLen + sizeof(v5MDTail));
     if (ret <= 0) return -2;
-    ret = cmpCheckSum(buffer,sizeof(v5mdhead) + bodyLen, tail);
+    ret = cmpCheckSum(buffer,sizeof(v5MDHead) + bodyLen, tail);
     if (ret == 0) {
         LOG_INFO("Logon checksum passed");
     } else {
@@ -67,43 +65,50 @@ int RecvLogon(int sock) {
 }
 
 int RecvMsg(int sock) {
-    char buffer[4096] = {0};
+    char buffer[4096] = {};
     int ret = 0;
-    ret = myRecv(sock, buffer, sizeof(v5mdhead));
+    ret = myRecv(sock, buffer, sizeof(v5MDHead));
     if (ret <= 0) {
         return -1;
     }
-    v5mdhead *hd = (v5mdhead *) buffer;
-    uint32_t msgtype = htnu32(hd->MsgType);
-    uint32_t bodylength = htnu32(hd->BodyLength);
-    char *body = (char *) (hd + 1);
-    char *tail = (char *) (body + bodylength);
-    ret = myRecv(sock, body, bodylength + sizeof(v5mdtail));
+    auto *hd = reinterpret_cast<v5MDHead *>(buffer);
+    hd->MsgType = htnu32(hd->MsgType);
+    hd->BodyLength = htnu32(hd->BodyLength);
+    uint32_t msgType = hd->MsgType;
+    uint32_t BodyLength = hd->BodyLength;
+    char *body = reinterpret_cast<char *>(hd + 1);
+    char *tail = body + BodyLength;
+    ret = myRecv(sock, body, BodyLength + sizeof(v5MDTail));
     if (ret <= 0) {
         return -2;
     }
-    ret = checkBufferLength(sizeof(v5mdhead),bodylength,sizeof(v5mdtail),sizeof(buffer));
+    ret = checkBufferLength(sizeof(v5MDHead),BodyLength,sizeof(v5MDTail),sizeof(buffer));
     if (ret < 0) {
-        LOG_INFO("Msg received msgtype\t{}", msgtype);
-        LOG_INFO("Msg received datalen\t{}", bodylength);
+        LOG_INFO("Msg received msgType\t{}", msgType);
+        LOG_INFO("Msg received BodyLength\t{}", BodyLength);
         return -3;
     }
-    ret = cmpCheckSum(buffer, sizeof(v5mdhead) + bodylength,tail);
+    ret = cmpCheckSum(buffer, sizeof(v5MDHead) + BodyLength,tail);
     if (ret < 0) {
-        LOG_ERROR("Last Msg received msgtype\t{}",msgtype);
-        LOG_ERROR("Last Msg received datalen\t{}",bodylength);
+        LOG_ERROR("Last Msg received msgType\t{}",msgType);
+        LOG_ERROR("Last Msg received BodyLength\t{}",BodyLength);
         return -4;
     }
     //TODO 这里还需要再加一些统计次数和耗时
-    switch (msgtype) {
+    switch (hd->MsgType) {
         case 3:
             OnHeartBeat();
             break;
         case 390095:
             OnChannelHeartBeat();
             break;
-        case 300111:
-            OnRealTimeMD(body, bodylength);
+        //会话管理类功能要同步处理
+
+        //业务请求转到异步线程做吧
+        default:
+            v5QueueData queueData{};
+            memcpy(&queueData,buffer,sizeof(v5MDHead)+BodyLength);
+            queueForSZMarketData.push(queueData);
             break;
     }
     return 0;
@@ -118,7 +123,6 @@ void OnLogon(const v5mdLogonBody logon) {
 }
 
 uint32_t hbcount = 0;
-
 void OnHeartBeat() {
     hbcount++;
     if (hbcount % 100 == 0)
@@ -126,37 +130,22 @@ void OnHeartBeat() {
 }
 
 uint32_t chhb = 0;
-
 void OnChannelHeartBeat() {
     chhb++;
     if (chhb % 100 == 0)
         LOG_INFO("ChannelHeartBeatCount\t{}",chhb);
 }
 
-uint32_t rtmdcount = 0;
-
-void OnRealTimeMD(void* data,int length) {
-    rtmdcount++;
-    if (rtmdcount % 100 == 0)
-        LOG_INFO("RealTimeMDCount\t{}",rtmdcount);
-    RawSzMDData md = {};
-    if(deserializeBody(md,data,length)) {
-        LOG_ERROR("deserialize body failed");
-        return ;
-    }
-    szMDParser.parseNL(md);
-    showMdData(md);
+char* setLogonHead(void* buffer) {
+    auto *p = static_cast<struct MsgReqLogon *>(buffer);
+    p->head.MsgType = htnu32(1);
+    p->head.BodyLength = htnu32(sizeof(v5mdLogonBody));
+    return static_cast<char *>(buffer) + sizeof(p->head);
 }
-/*Standard Header 消息头
-MsgType=3xxx11
-OrigTime 数据生成时间
-ChannelNo 频道代码
-MDStreamID 行情类别
-SecurityID 证券代码
-SecurityIDSource 证券代码源
-TradingPhaseCode 产品所处的交易阶段代码
-PrevClosePx 昨收价
-NumTrades 成交笔数
-TotalVolumeTrade 成交总量
-TotalValueTrade 成交总金额
-Extend Fields 各业务扩展字段*/
+
+char* serializeLogonBody(const v5mdLogonBody &body, void* buffer) {
+    memcpy(buffer, &body, sizeof( v5mdLogonBody));
+    auto *p = static_cast<v5mdLogonBody *>(buffer);
+    p->HeartBtInt = htnu32(body.HeartBtInt);
+    return (static_cast<char *>(buffer) + sizeof(body));
+}

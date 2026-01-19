@@ -49,9 +49,6 @@ public:
     bool try_pop_v_p(std::vector<T> &items, int timeout_ms, int &timeout_cnt ,int &wakeup_cnt) ;
     bool try_pop_v_np(std::vector<T> &items, int timeout_ms, int &timeout_cnt,int &wakeup_cnt) ;
 
-
 };
-
-extern template class MyFifoQueue<RawSzMDData>;
 
 #endif //SZSE_MYFIFOQUEUE_H

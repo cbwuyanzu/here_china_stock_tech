@@ -152,14 +152,15 @@ int INIReader::ParseError() const {
 
 int INIReader::parstToStruct(Configuration &cfg) const {
     strcpy(cfg.szServerIP, GetString("COMMON", "SERVER_IP", "127.0.0.1").c_str());
-    cfg.iPort = GetInteger("COMMON", "SRRVER_MD_PORT", 8888);
+    cfg.iPort = GetInteger("COMMON", "SERVER_MD_PORT", 8888);
     strcpy(cfg.reqLogon.szLocalName, GetString("LOGON", "SENDER_NAME", "DEFAULT_SENDER").c_str());
     strcpy(cfg.reqLogon.szTargetName, GetString("LOGON", "RECEIVER_NAME", "DEFAULT_RECEIVER").c_str());
-    cfg.reqLogon.iHeartBeat = GetInteger("LOGON", "HEARBEATINT", 30);
+    cfg.reqLogon.iHeartBeat = GetInteger("LOGON", "HEART_BEAT_INT", 30);
     strcpy(cfg.reqLogon.szPassword, GetString("LOGON", "PASSWORD", "DEFAULT_PASSWORD").c_str());
     strcpy(cfg.reqLogon.szVersion, GetString("LOGON", "VERSION", "1.0.0").c_str());
-    strcpy(cfg.logFile, GetString("LOG", "LOGFILE", "log/test.log").c_str());
-    strcpy(cfg.logLevel, GetString("LOG", "LOGLEVEL", "info").c_str());
+    strcpy(cfg.logFile, GetString("LOG", "LOG_FILE", "log/test.log").c_str());
+    strcpy(cfg.logLevel, GetString("LOG", "LOG_LEVEL", "info").c_str());
+    cfg.popTimeout = GetInteger("PERF", "POP_TIMEOUT", 5);
     return 0;
 }
 
@@ -173,6 +174,7 @@ void INIReader::showConfig(const Configuration &cfg) const {
     LOG_INFO("cfg.szVersion:{}", cfg.reqLogon.szVersion);
     LOG_INFO("cfg.logFile:{}", cfg.logFile);
     LOG_INFO("cfg.logLevel:{}", cfg.logLevel);
+    LOG_INFO("cfg.popTimeout:{}", cfg.popTimeout);
 }
 
 

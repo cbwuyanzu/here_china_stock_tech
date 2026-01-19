@@ -28,9 +28,10 @@
 struct Configuration{
     char szServerIP[50]{};
     int iPort = 0;
-    ReqLogon reqLogon;
+    ReqLogonCfg reqLogon;
     char logLevel[32]{};
     char logFile[1024]{};
+    int popTimeout = 5;
 } ;
 #pragma pack()
 

@@ -9,7 +9,7 @@
 
 // utility.h -> session.h
 
-#include "types.h"
+#include "business.h"
 #include "configuration.h"
 #include "loggerSingleton.h"
 #include "threadFuncs.h"
@@ -18,6 +18,7 @@
 
 int exitFlag = 0;
 LoggerSingleton LoggerSingleton::instance;
+
 
 int main() {
   Configuration cfg = {};
@@ -37,6 +38,7 @@ int main() {
     reader.showConfig(cfg);
   }
   std::thread szIoThread(szIoThreadFunc,cfg);
+  std::thread szBusinessThread(szBusinessThreadFunc,cfg);
   char cmd = 0;
   printCmd();
   while (!exitFlag) {
@@ -46,12 +48,20 @@ int main() {
       case 'q':
       case 'Q':
         exitFlag = 1;
-        cmd = 0;
+        break;
+      case 's':
+      case 'S':
+        show();
+        break;
+      case 'd':
+      case 'D':
+        dump();
         break;
       default:
         ;
     }
   }
   szIoThread.join();
+  szBusinessThread.join();
   return 0;
 }
