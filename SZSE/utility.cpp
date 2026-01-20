@@ -118,9 +118,9 @@ long long getTimestampAsLongLong() {
 
 void printCmd() {
     printf("press your cmd:\n");
-    printf("  q/Q      quit\n");
-    printf("  s/S      show\n");
-    printf("  d/D      dump\n");
+    printf("  Q      Quit\n");
+    printf("  S      Show\n");
+    printf("  D      Dump\n");
 }
 
 void show() {

@@ -19,7 +19,7 @@ include_directories(../3rd_lib/include ${PROJECT_SOURCE_DIR})
 #endif()
 
 add_executable(SZSE main.cpp
-        configuration.cpp
+        myInih.cpp
         session.cpp
         utility.cpp
         loggerSingleton.cpp

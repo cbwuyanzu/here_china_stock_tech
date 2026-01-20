@@ -4,7 +4,7 @@
 
 #ifndef SZSE_THREADFUNCS_H
 #define SZSE_THREADFUNCS_H
-#include "configuration.h"
+#include "myInih.h"
 #include "utility.h"
 #include "session.h"
 

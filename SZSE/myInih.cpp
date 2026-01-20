@@ -263,8 +263,6 @@ std::string INIReader::MakeKey(const std::string &section, const std::string &na
     return key;
 }
 
-// configuration.cpp 中的修复
-
 int INIReader::ValueHandler(void *user, const char *section, const char *name,
                             const char *value) {
     // 1. 检查基本参数

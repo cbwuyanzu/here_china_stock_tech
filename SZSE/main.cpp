@@ -10,7 +10,7 @@
 // utility.h -> session.h
 
 #include "business.h"
-#include "configuration.h"
+#include "myInih.h"
 #include "loggerSingleton.h"
 #include "threadFuncs.h"
 
