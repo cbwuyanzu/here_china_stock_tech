@@ -9,6 +9,9 @@
 #include "utility.h"
 #include "session.h"
 
+FuncStatMap fsIo;
+std::mutex mtxIo;
+
 MyFifoQueue<v5QueueData> queueForSZMarketData;
 
 int SendLogon(int sock, ReqLogonCfg reqLogon) {
@@ -95,6 +98,8 @@ int RecvMsg(int sock) {
         return -4;
     }
     //TODO 这里还需要再加一些统计次数和耗时
+
+    auto start = std::chrono::high_resolution_clock::now();
     switch (hd->MsgType) {
         case 3:
             OnHeartBeat();
@@ -110,6 +115,19 @@ int RecvMsg(int sock) {
             memcpy(&queueData,buffer,sizeof(v5MDHead)+BodyLength);
             queueForSZMarketData.push(queueData);
             break;
+    }
+    {
+        mtxIo.lock();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        auto it = fsIo.find(msgType);
+        if ( it == fsIo.end()) {
+            fsIo.insert(std::make_pair(msgType,funcStat{1,0,duration.count()}));
+        } else {
+            it->second.success++;
+            it->second.successTimeCostMs += duration.count();
+        }
+        mtxIo.unlock();
     }
     return 0;
 }

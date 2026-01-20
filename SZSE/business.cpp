@@ -11,9 +11,15 @@
 extern  SZMDParser szMDParser;
 extern MyFifoQueue<v5QueueData> queueForSZMarketData;
 
-void popAndParse(int timeoutMs){
-    v5QueueData queueData{};
-    queueForSZMarketData.try_pop(queueData,timeoutMs);
+FuncStatMap fsBusiness;
+std::mutex mtxBusiness;
+
+
+void popAndParse(int timeoutMs, v5QueueData &queueData){
+    if (!queueForSZMarketData.try_pop(queueData,timeoutMs)) {
+        return;
+    }
+    auto start = std::chrono::system_clock::now();
     switch (queueData.parsedHead.MsgType) {
         case 300111:
             RawSzMDData md = {};
@@ -24,6 +30,19 @@ void popAndParse(int timeoutMs){
             OnRealTimeMD(md);
             break;
         // default: ;
+    }
+    {
+        mtxBusiness.lock();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        auto it = fsBusiness.find(queueData.parsedHead.MsgType);
+        if ( it == fsBusiness.end()) {
+            fsBusiness.insert(std::make_pair(queueData.parsedHead.MsgType,funcStat{1,0,duration.count()}));
+        } else {
+            it->second.success++;
+            it->second.successTimeCostMs += duration.count();
+        }
+        mtxBusiness.unlock();
     }
 }
 

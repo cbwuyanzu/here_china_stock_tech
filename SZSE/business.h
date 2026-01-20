@@ -5,9 +5,10 @@
 #ifndef SZSE_BUSINESS_H
 #define SZSE_BUSINESS_H
 
+#include <mutex>
 #include "types.h"
 
-void popAndParse(int timeoutMs);
+void popAndParse(int timeoutMs, v5QueueData &queueData);
 
 int deserialize300111(RawSzMDData &md,const void* buffer, uint32_t length);
 

@@ -42,8 +42,9 @@ void szIoThreadFunc(Configuration cfg) {
 
 void szBusinessThreadFunc(Configuration cfg) {
     LOG_INFO("szBusinessThreadFunc running");
+    v5QueueData queueData;
     while (!exitFlag) {
         //不用sleep了, 因为pop中含了wait_for
-        popAndParse(cfg.popTimeout);
+        popAndParse(cfg.popTimeout,queueData);
     }
 }

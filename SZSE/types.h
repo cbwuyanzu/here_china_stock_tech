@@ -5,10 +5,12 @@
 #ifndef SZSE_TYPES_H
 #define SZSE_TYPES_H
 
+#include <cstdint>
+#include <unordered_map>
+
 #pragma pack(1)
 //二进制解包 必须字节对齐
 #define MAX_MD_ENTRY_NO 30
-#include <cstdint>
 
 using CompId = char[20];
 using NumInGroup = uint32_t;
@@ -108,11 +110,14 @@ struct MyMDItem {
     long long origTime;
     long long updateTime;
 };
-
-
-
-
 //cancel 1 byte pack
 #pragma pack()
 
+struct funcStat {
+    long long success;
+    long long fail;
+    long long successTimeCostMs;
+    long long failTimeCostMs;
+};
+using FuncStatMap = std::unordered_map<uint32_t, funcStat>;
 #endif //SZSE_TYPES_H

@@ -4,7 +4,6 @@
 //
 //sockaddr_in AF_INET connect sockaddr inet_addr
 
-#include <iostream>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include "utility.h"
@@ -12,6 +11,10 @@
 #include "szMdParser.h"
 
 extern SZMDParser szMDParser;
+extern std::mutex mtxIo;
+extern std::mutex mtxBusiness;
+extern FuncStatMap fsIo;
+extern FuncStatMap fsBusiness;
 
 int myConnect(const char* serverIP,const int port, int &sock_fd) {
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -116,6 +119,9 @@ long long getTimestampAsLongLong() {
     return result;
 }
 
+
+
+
 void printCmd() {
     printf("press your cmd:\n");
     printf("  Q      Quit\n");
@@ -125,7 +131,25 @@ void printCmd() {
 
 void show() {
     szMDParser.show();
-    std::cout << "Connect Status: not finished yet" << std::endl;
+    mtxIo.lock();
+    printf("IoThreadStat\nfuncNo|success|fail|successCostMs|failCostMs|aveSuccessCost|aveFailCost\n");
+    for (auto p: fsIo) {
+        printf("%d|%lld|%lld|%lld|%lld|"
+               "%lld|%lld\n",
+            p.first, p.second.success, p.second.fail, p.second.successTimeCostMs, p.second.failTimeCostMs,
+            p.second.success!=0 ? p.second.successTimeCostMs/p.second.success:0, p.second.fail != 0 ? p.second.failTimeCostMs/p.second.fail:0);
+    }
+    mtxIo.unlock();
+    mtxBusiness.lock();
+    printf("BusinessThreadStat\nfuncNo|success|fail|successCostMs|failCostMs|aveSuccessCost|aveFailCost\n");
+    for (auto p: fsBusiness) {
+        printf("%d|%lld|%lld|%lld|%lld|"
+               "%lld|%lld\n",
+            p.first, p.second.success, p.second.fail, p.second.successTimeCostMs, p.second.failTimeCostMs,
+            p.second.success!=0 ? p.second.successTimeCostMs/p.second.success:0, p.second.fail != 0 ? p.second.failTimeCostMs/p.second.fail:0);
+    }
+    mtxBusiness.unlock();
+    printf("Connect Status: not finished yet");
 }
 
 void dump() {
