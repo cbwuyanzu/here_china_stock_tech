@@ -3,8 +3,8 @@
 //
 // Created by dzg on 2025/12/30.
 //
-#ifndef SZSE_CONFIGURATION_H
-#define SZSE_CONFIGURATION_H
+#ifndef SZSE_MYINIH_H
+#define SZSE_MYINIH_H
 
 #include <stdio.h>
 #include <ctype.h>
@@ -91,4 +91,4 @@ protected:
     static int ValueHandler(void *user, const char *section, const char *name,
                             const char *value);
 };
-#endif //SZSE_CONFIGURATION_H
+#endif //SZSE_MYINIH_H

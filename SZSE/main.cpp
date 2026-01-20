@@ -42,8 +42,10 @@ int main() {
   char cmd = 0;
   printCmd();
   while (!exitFlag) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     scanf("%c",&cmd);
+    if (cmd == '\n') {
+      continue;
+    }
     switch (cmd) {
       case 'q':
       case 'Q':
@@ -57,9 +59,9 @@ int main() {
       case 'D':
         dump();
         break;
-      default:
-        ;
+      default: ;
     }
+    printCmd();
   }
   szIoThread.join();
   szBusinessThread.join();

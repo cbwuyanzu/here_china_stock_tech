@@ -3,7 +3,7 @@
 //
 // Created by dzg on 2025/12/30.
 //
-#include "configuration.h"
+#include "myInih.h"
 
 #define INI_START_COMMENT_PREFIXES ";#"
 #define INI_MAX_LINE 200
