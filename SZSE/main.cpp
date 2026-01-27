@@ -37,8 +37,8 @@ int main() {
     LoggerSingleton::getInstance().logInit(cfg.logFile,cfg.logLevel);
     reader.showConfig(cfg);
   }
-  std::thread szIoThread(szIoThreadFunc,cfg);
-  std::thread szBusinessThread(szBusinessThreadFunc,cfg);
+  std::thread szIoThread(szIoThreadFunc,std::ref(cfg));
+  std::thread szBusinessThread(szBusinessThreadFunc,std::ref(cfg));
   char cmd = 0;
   printCmd();
   while (!exitFlag) {

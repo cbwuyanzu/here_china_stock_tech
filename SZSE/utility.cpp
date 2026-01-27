@@ -119,39 +119,48 @@ long long getTimestampAsLongLong() {
     return result;
 }
 
-
-
-
 void printCmd() {
     printf("press your cmd:\n");
     printf("  Q      Quit\n");
     printf("  S      Show\n");
     printf("  D      Dump\n");
+    printf("\n");
 }
 
 void show() {
     szMDParser.show();
     mtxIo.lock();
-    printf("IoThreadStat\nfuncNo|success|fail|successCostMs|failCostMs|aveSuccessCost|aveFailCost\n");
+    printf("IoThreadStat\nfuncNo|success|fail|successCostUs|failCostUs|aveSuccessCost|aveFailCost\n");
     for (auto p: fsIo) {
         printf("%d|%lld|%lld|%lld|%lld|"
                "%lld|%lld\n",
-            p.first, p.second.success, p.second.fail, p.second.successTimeCostMs, p.second.failTimeCostMs,
-            p.second.success!=0 ? p.second.successTimeCostMs/p.second.success:0, p.second.fail != 0 ? p.second.failTimeCostMs/p.second.fail:0);
+            p.first, p.second.success, p.second.fail, p.second.successTimeCostUs, p.second.failTimeCostUs,
+            p.second.success!=0 ? p.second.successTimeCostUs/p.second.success:0, p.second.fail != 0 ? p.second.failTimeCostUs/p.second.fail:0);
     }
     mtxIo.unlock();
     mtxBusiness.lock();
-    printf("BusinessThreadStat\nfuncNo|success|fail|successCostMs|failCostMs|aveSuccessCost|aveFailCost\n");
+    printf("BusinessThreadStat\nfuncNo|success|fail|successCostUs|failCostUs|aveSuccessCost|aveFailCost\n");
     for (auto p: fsBusiness) {
         printf("%d|%lld|%lld|%lld|%lld|"
                "%lld|%lld\n",
-            p.first, p.second.success, p.second.fail, p.second.successTimeCostMs, p.second.failTimeCostMs,
-            p.second.success!=0 ? p.second.successTimeCostMs/p.second.success:0, p.second.fail != 0 ? p.second.failTimeCostMs/p.second.fail:0);
+            p.first, p.second.success, p.second.fail, p.second.successTimeCostUs, p.second.failTimeCostUs,
+            p.second.success!=0 ? p.second.successTimeCostUs/p.second.success:0, p.second.fail != 0 ? p.second.failTimeCostUs/p.second.fail:0);
     }
     mtxBusiness.unlock();
-    printf("Connect Status: not finished yet");
+    printf("Connect Status: not finished yet\n");
+    printf("\n");
 }
 
 void dump() {
     szMDParser.dump("dump.txt");
 }
+
+
+#if 0
+******
+    IoThreadStat
+    STD DEQUE and Mutex 8us VS  NO LOCK QUEUE 2us
+    BusinessThreadStat
+    STL UNORDERED_MAP   8us VS  SHM TABLE 2us
+******
+#endif

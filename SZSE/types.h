@@ -13,12 +13,19 @@
 #define MAX_MD_ENTRY_NO 30
 
 using CompId = char[20];
+using SessionStatus = int32_t;
+using Text = char[200];
+
+
 using NumInGroup = uint32_t;
 using LocalTimeStamp = int64_t;
 using SecurityIDType = char[8];
 using Price = int64_t;
 using Qty = int64_t;
 using Amt = int64_t;
+
+
+
 
 struct ReqLogonCfg {
     char szLocalName[20];
@@ -51,6 +58,18 @@ struct MsgReqLogon{
     v5MDTail tail;
 };
 
+
+struct v5mdLogoutBody {
+    SessionStatus session_status;
+    Text text;
+};
+
+struct MsgReqLogout{
+    v5MDHead head;
+    v5mdLogoutBody body;
+    v5MDTail tail;
+};
+
 struct MDEntry{
     char MDEntryType[2];
     int64_t MDEntryPx;
@@ -80,8 +99,38 @@ struct RawSzMDData {
     ExtendFieldType ExtendFields;
 };
 
+struct RawSzHkMarketStatus {
+    LocalTimeStamp OrigTime;
+    uint16_t ChannelNo;
+    char MarketId[8];
+    char MarketSegmentID[8];//Reserve
+    char TradingSessionID[4];
+    char TradingSessionSubID[4];
+    uint16_t TradSesStatus;//Reserve
+    LocalTimeStamp TradSesStartTime;//Reserve
+    LocalTimeStamp TradSesEndTime;//Reserve
+    Amt ThresholdAmount;
+    Amt PosAmt;
+    char AmountStatus;//1-额度不可用 2-额度可用 3-额度充足
+};
+
+struct ChannelStatEntry{
+    char MDStreamID[3];
+    uint32_t StockNum;
+    char TradingPhaseCode[8];
+};
+
+struct RawSzChannelStat {
+    LocalTimeStamp OrigTime;
+    uint16_t ChannelNo;
+    NumInGroup NoMDSteamId;
+    ChannelStatEntry ChannelStatEntity[MAX_MD_ENTRY_NO];
+};
+
 union v5RecvMsgBody {
     RawSzMDData r300111;
+    RawSzHkMarketStatus r390019;
+    RawSzChannelStat r390090;
     char charArray[4096];
 };
 
@@ -116,8 +165,29 @@ struct MyMDItem {
 struct funcStat {
     long long success;
     long long fail;
-    long long successTimeCostMs;
-    long long failTimeCostMs;
+    long long successTimeCostUs;
+    long long failTimeCostUs;
 };
 using FuncStatMap = std::unordered_map<uint32_t, funcStat>;
+
+
+const std::unordered_map<int,const char*> DictTradingSessionSubID = {
+    {-1,   "INIT"},
+    {0 , "全日收市"},
+    {1 , "输入买卖盘(开盘集合竞价时段)"},
+    {2 , "对盘(开盘集合竞价时段)"},
+    {3 , "持续交易"},
+    {4 , "对盘(收盘集合竞价时段)"},
+    {5 , "输入买卖盘(收盘集合竞价时段)"},
+    {7 , "暂停"},
+    {100 , "未开市"},
+    {101 , "对盘前(开盘集合竞价时段)"},
+    {102 , "Exchange Intervention"},
+    {103 , "收市"},
+    {104 , "取消买卖盘"},
+    {105 , "参考价定价(收盘集合竞价时段)"},
+    {106 , "不可取消(收盘集合竞价时段)"},
+    {107 , "随机收市(收盘集合竞价时段)"},
+    {108 , "随机对盘(开盘集合竞价时段)"}
+};
 #endif //SZSE_TYPES_H

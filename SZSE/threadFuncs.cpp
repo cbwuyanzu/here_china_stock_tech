@@ -5,8 +5,10 @@
 #include "business.h"
 
 extern int exitFlag;
+extern MsgRouter msgRouter;
+MsgRouter MsgRouter::instance;
 
-void szIoThreadFunc(Configuration cfg) {
+void szIoThreadFunc(const Configuration &cfg) {
     constexpr int TOTAL_STEP  = 5;
     int needReconnect = 1;
     int clientSocket = 0;
@@ -35,14 +37,20 @@ void szIoThreadFunc(Configuration cfg) {
         }
         needReconnect = RecvMsg(clientSocket);
     }
-    LOG_INFO("step:last/{}\tTo Exit", TOTAL_STEP);
+    if (SendLogout(clientSocket) != 0) {
+        LOG_CRITICAL("SendLogout failed");
+    } else {
+        LOG_INFO("step:-2/{}\tSendLogout", TOTAL_STEP);
+    }
+    LOG_INFO("step:-1/{}\tTo Exit", TOTAL_STEP);
     myClose(clientSocket);
 }
 
 
-void szBusinessThreadFunc(Configuration cfg) {
+void szBusinessThreadFunc(const Configuration &cfg) {
     LOG_INFO("szBusinessThreadFunc running");
     v5QueueData queueData;
+    initializeMsgHandlers();
     while (!exitFlag) {
         //不用sleep了, 因为pop中含了wait_for
         popAndParse(cfg.popTimeout,queueData);

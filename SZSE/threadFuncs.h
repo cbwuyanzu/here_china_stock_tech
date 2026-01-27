@@ -8,8 +8,8 @@
 #include "utility.h"
 #include "session.h"
 
-void szIoThreadFunc(Configuration cfg);
+void szIoThreadFunc(const Configuration &cfg);
 
-void szBusinessThreadFunc(Configuration cfg);
+void szBusinessThreadFunc(const Configuration &cfg);
 
 #endif //SZSE_THREADFUNCS_H

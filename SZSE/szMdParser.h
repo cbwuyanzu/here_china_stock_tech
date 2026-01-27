@@ -7,19 +7,23 @@
 
 #include <mutex>
 #include <unordered_map>
-
 #include "types.h"
+#include "shmStorage.h"
+
+
 
 
 class SZMDParser {
-    std::unordered_map<int,MyMDItem> myMDMap;
-    std::mutex mtx;
+    // std::unordered_map<int,MyMDItem> myMDMap;
+    ShmStorage myMDmap;
+    // std::mutex mtx;
 public:
     SZMDParser();
 
     int makeKey(int marketCode, int stockCode);
 
     MyMDItem makeElement(int marketCode, int stockCode);
+    MyMDItem* getElement(int marketCode, int stockCode);
 
     int savePx(int marketCode, int stockCode, int entryType, int value);
     int loadPx(int marketCode, int stockCode, int entryType, int& value);
