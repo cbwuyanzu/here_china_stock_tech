@@ -28,6 +28,7 @@ private:
 };
 
 #define LOGGER LoggerSingleton::getInstance().getLogger()
+#define LOG_TRACE(...) {LOGGER->trace(__VA_ARGS__);}
 #define LOG_DEBUG(...) {LOGGER->debug(__VA_ARGS__);}
 #define LOG_INFO(...) {LOGGER->info(__VA_ARGS__);}
 #define LOG_WARN(...) {LOGGER->warn(__VA_ARGS__);}

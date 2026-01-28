@@ -10,7 +10,8 @@
 
 #pragma pack(1)
 //二进制解包 必须字节对齐
-#define MAX_MD_ENTRY_NO 30
+constexpr int MAX_MD_ENTRY_NO = 30;
+// constexpr int MAX_MD_ENTRY_NO 30
 
 using CompId = char[20];
 using SessionStatus = int32_t;
@@ -99,6 +100,39 @@ struct RawSzMDData {
     ExtendFieldType ExtendFields;
 };
 
+struct HkMDEntry{
+    char MDEntryType[2];
+    int64_t MDEntryPx;
+    Qty MDEntrySize;
+    uint16_t MDPriceLevel;
+};
+
+struct HkVcm{
+    NumInGroup NoComplexEventTimes;
+    LocalTimeStamp ComplexEventStartTime;
+    LocalTimeStamp ComplexEventEndTime;
+};
+
+struct HKExtendFieldType {
+    NumInGroup NoMDEntries;
+    HkMDEntry MDEntryEntity[MAX_MD_ENTRY_NO];
+    HkVcm hkVcm;
+};
+
+struct RawSzHkMDData {
+    LocalTimeStamp OrigTime;
+    uint16_t ChannelNo;
+    char MDStreamID[3];
+    SecurityIDType SecurityID;
+    char SecurityIDSource[4];
+    char TradingPhaseCode[8];
+    Price PrevClosePx;
+    int64_t NumTrades;
+    Qty TotalVolumeTrade;
+    Amt TotalValueTrade;
+    HKExtendFieldType ExtendFields;
+};
+
 struct RawSzHkMarketStatus {
     LocalTimeStamp OrigTime;
     uint16_t ChannelNo;
@@ -131,6 +165,7 @@ union v5RecvMsgBody {
     RawSzMDData r300111;
     RawSzHkMarketStatus r390019;
     RawSzChannelStat r390090;
+    RawSzHkMDData r306311;
     char charArray[4096];
 };
 

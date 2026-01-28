@@ -11,170 +11,21 @@
 #include "utility.h"
 
 
-SZMDParser::SZMDParser() : myMDmap("SZMDParser.shm") {
+MDParser::MDParser() : myMDmap("MDParser.shm") {
 }
 
-int SZMDParser::makeKey(const int marketCode, const int stockCode) {
+int MDParser::makeKey(const int marketCode, const int stockCode) {
     if (stockCode >= 1000000) return -1;
     int index = marketCode * 1000000 + stockCode;
     return index;
 }
 
-MyMDItem SZMDParser::makeElement(const int marketCode, const int stockCode) {
+MyMDItem MDParser::makeElement(const int marketCode, const int stockCode) {
     MyMDItem mdItem = {marketCode, stockCode};
     return mdItem;
 }
 
-#if 0
-int SZMDParser::savePx(const int marketCode, const int stockCode, const int entryType, const int value) {
-    int index = makeKey(marketCode, stockCode);
-    if (index < 0) return -1;
-    {
-        std::lock_guard<std::mutex> lock_guard(mtx);
-        auto it = myMDMap.find(index);
-        if (it == myMDMap.end()) {
-            MyMDItem mdItem = makeElement(marketCode, stockCode);
-            mdItem.price[entryType] = value;
-            myMDMap.insert({index,mdItem});
-        } else {
-            it->second.price[entryType] = value;
-        }
-    }
-    return 0;
-}
-
-int SZMDParser::loadPx(const int marketCode, const int stockCode, const int entryType, int &value) {
-    int index = makeKey(marketCode, stockCode);
-    if (index < 0) return -2;
-    {
-        std::lock_guard<std::mutex> lock_guard(mtx);
-        auto it = myMDMap.find(index);
-        if (it != myMDMap.end()) {
-            return it->second.price[entryType];
-        }
-    }
-    return -1;
-}
-
-int SZMDParser::saveOrigTime(const int marketCode,const int stockCode,const long long origTime) {
-    int index = makeKey(marketCode, stockCode);
-    if (index < 0) return -1;
-    {
-        std::lock_guard<std::mutex> lock_guard(mtx);
-        auto it = myMDMap.find(index);
-        if (it == myMDMap.end()) {
-            MyMDItem mdItem = makeElement(marketCode, stockCode);
-            mdItem.origTime = origTime;
-            mdItem.updateTime = getTimestampAsLongLong();
-            myMDMap.insert({index,mdItem});
-        } else {
-            it->second.origTime = origTime;
-            it->second.updateTime = getTimestampAsLongLong();
-        }
-    }
-    return 0;
-}
-
-int SZMDParser::saveMktStkCode(const int marketCode, const int stockCode) {
-    int index = makeKey(marketCode, stockCode);
-    if (index < 0) return -1;
-    {
-        std::lock_guard<std::mutex> lock_guard(mtx);
-        auto it = myMDMap.find(index);
-        if (it == myMDMap.end()) {
-            MyMDItem mdItem = makeElement(marketCode, stockCode);
-            mdItem.marketCode = marketCode;
-            mdItem.stockCode = stockCode;
-            myMDMap.insert({index,mdItem});
-        } else {
-            it->second.marketCode = marketCode;
-            it->second.stockCode = stockCode;
-        }
-    }
-    return 0;
-}
-
-int SZMDParser::parse(const RawSzMDData &mdData)  {
-    constexpr int marketCode = 2;
-    int stockCode = fixedCharToInt(mdData.SecurityID, sizeof(SecurityIDType));
-    if (stockCode >= 1000000) return 1;
-    if (saveMktStkCode(marketCode,stockCode) < 0) {
-
-    }
-    if (saveOrigTime(marketCode,stockCode,mdData.OrigTime) < 0) {
-
-    }
-    for (int i = 0; i < mdData.ExtendFields.NoMDEntries; i++) {
-        char charEntryType = mdData.ExtendFields.MDEntryEntity[i].MDEntryType[0];
-        if (charEntryType < '0' || charEntryType > '9' ) {
-            //x?这类暂时不支持
-            continue;
-        }
-        if (mdData.ExtendFields.MDEntryEntity[i].MDPriceLevel > 1){
-            //买卖2-5暂时不支持
-            continue;
-        }
-        if (savePx(marketCode, stockCode, charEntryType-'0', mdData.ExtendFields.MDEntryEntity[i].MDEntryPx) < 0) {
-
-        }
-    }
-    return 0;
-}
-
-void SZMDParser::show() {
-    int size = 0;
-    {
-        std::lock_guard<std::mutex> lock_guard(mtx);
-        size = myMDMap.size();
-    }
-    printf("myMDMap.size(): %d\n",size);
-}
-
-void SZMDParser::dump(const char* file_path) {
-    printf("start dumping to %s...\n",file_path);
-    int fd = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    if (fd == -1) {
-        perror("Error opening file\n");
-        close(fd);
-        return;
-    }
-    int i = 0;
-    long long currentTimeWithMs = getTimestampAsLongLong();
-    char lineBuf[256] = {};
-    snprintf(lineBuf, sizeof(lineBuf), "%lld\n", currentTimeWithMs);
-    write(fd,lineBuf,strlen(lineBuf));
-    {
-        std::lock_guard<std::mutex> lock_guard(mtx);
-        for (auto pair : myMDMap) {
-            ++i;
-            memset(lineBuf,0, 256);
-            snprintf(lineBuf,256,"%d\n", pair.first);
-            size_t bytesWritten = write(fd, lineBuf, strlen(lineBuf));
-            if (bytesWritten == -1) {
-                perror("Error writing file\n");
-                close(fd);
-                return;
-            }
-            memset(lineBuf,0, 256);
-            snprintf(lineBuf,256,"%1d|%06d|%s|%lld|%lld|"
-                                 "%9d %9d %9d %9d %9d "
-                                 "%9d\n",
-                pair.second.marketCode, pair.second.stockCode, pair.second.stockName, pair.second.origTime, pair.second.updateTime,
-                pair.second.price[static_cast<size_t>(SzseEntry::BidPrice)],pair.second.price[static_cast<size_t>(SzseEntry::AskPrice)],pair.second.price[static_cast<size_t>(SzseEntry::LastPrice)],pair.second.price[static_cast<size_t>(SzseEntry::OpenPrice)],pair.second.price[static_cast<size_t>(SzseEntry::HighPrice)],
-                pair.second.price[static_cast<size_t>(SzseEntry::LowPrice)]);
-            bytesWritten = write(fd, lineBuf, strlen(lineBuf));
-            if (bytesWritten == -1) {
-                perror("Error writing file\n");
-                close(fd);
-                return;
-            }
-        }
-    }
-    printf("dump finished %s %d Lines!\n\n",file_path, i);
-    close(fd);
-}
-#endif
-MyMDItem* SZMDParser::getElement(int marketCode, int stockCode) {
+MyMDItem* MDParser::getElement(int marketCode, int stockCode) {
     auto key = makeKey(marketCode, stockCode);
     if (key == -1) {
         return nullptr;
@@ -183,7 +34,7 @@ MyMDItem* SZMDParser::getElement(int marketCode, int stockCode) {
 }
 
 
-int SZMDParser::savePx(const int marketCode, const int stockCode, const int entryType, const int value) {
+int MDParser::savePx(const int marketCode, const int stockCode, const int entryType, const int value) {
     int index = makeKey(marketCode, stockCode);
     if (index < 0) return -2;
     {
@@ -199,7 +50,7 @@ int SZMDParser::savePx(const int marketCode, const int stockCode, const int entr
     return 0;
 }
 
-int SZMDParser::loadPx(const int marketCode, const int stockCode, const int entryType, int &value) {
+int MDParser::loadPx(const int marketCode, const int stockCode, const int entryType, int &value) {
     int index = makeKey(marketCode, stockCode);
     if (index < 0) return -2;
     {
@@ -211,7 +62,7 @@ int SZMDParser::loadPx(const int marketCode, const int stockCode, const int entr
     return -1;
 }
 
-int SZMDParser::saveOrigTime(const int marketCode,const int stockCode,const long long origTime) {
+int MDParser::saveOrigTime(const int marketCode,const int stockCode,const long long origTime) {
     int index = makeKey(marketCode, stockCode);
     if (index < 0) return -1;
     {
@@ -229,7 +80,7 @@ int SZMDParser::saveOrigTime(const int marketCode,const int stockCode,const long
     return 0;
 }
 
-int SZMDParser::saveMktStkCode(const int marketCode, const int stockCode) {
+int MDParser::saveMktStkCode(const int marketCode, const int stockCode) {
     int index = makeKey(marketCode, stockCode);
     if (index < 0) return -1;
     {
@@ -247,7 +98,7 @@ int SZMDParser::saveMktStkCode(const int marketCode, const int stockCode) {
     return 0;
 }
 
-int SZMDParser::parse(const RawSzMDData &mdData)  {
+int MDParser::parse(const RawSzMDData &mdData)  {
     constexpr int marketCode = 2;
     int stockCode = fixedCharToInt(mdData.SecurityID, sizeof(SecurityIDType));
     if (stockCode >= 1000000) return 1;
@@ -274,7 +125,34 @@ int SZMDParser::parse(const RawSzMDData &mdData)  {
     return 0;
 }
 
-void SZMDParser::show() {
+int MDParser::parse(const RawSzHkMDData &mdData)  {
+    constexpr int marketCode = 9;
+    int stockCode = fixedCharToInt(mdData.SecurityID, sizeof(SecurityIDType));
+    if (stockCode >= 1000000) return 1;
+    if (saveMktStkCode(marketCode,stockCode) < 0) {
+
+    }
+    if (saveOrigTime(marketCode,stockCode,mdData.OrigTime) < 0) {
+
+    }
+    for (int i = 0; i < mdData.ExtendFields.NoMDEntries; i++) {
+        char charEntryType = mdData.ExtendFields.MDEntryEntity[i].MDEntryType[0];
+        if (charEntryType < '0' || charEntryType > '9' ) {
+            //x?这类暂时不支持
+            continue;
+        }
+        if (mdData.ExtendFields.MDEntryEntity[i].MDPriceLevel > 1){
+            //买卖2-5暂时不支持
+            continue;
+        }
+        if (savePx(marketCode, stockCode, charEntryType-'0', mdData.ExtendFields.MDEntryEntity[i].MDEntryPx) < 0) {
+
+        }
+    }
+    return 0;
+}
+
+void MDParser::show() {
     size_t size = 0;
     {
         size = myMDmap.size();
@@ -282,7 +160,7 @@ void SZMDParser::show() {
     printf("myMDMap.size(): %lu\n",size);
 }
 
-void SZMDParser::dump(const char* file_path) {
+void MDParser::dump(const char* file_path) {
     printf("start dumping to %s...\n",file_path);
     int fd = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd == -1) {
@@ -326,5 +204,4 @@ void SZMDParser::dump(const char* file_path) {
     close(fd);
 }
 
-
-SZMDParser szMDParser;
+MDParser gMDParser;

@@ -10,7 +10,7 @@
 #include "loggerSingleton.h"
 #include "szMdParser.h"
 
-extern SZMDParser szMDParser;
+extern MDParser gMDParser;
 extern std::mutex mtxIo;
 extern std::mutex mtxBusiness;
 extern FuncStatMap fsIo;
@@ -128,7 +128,7 @@ void printCmd() {
 }
 
 void show() {
-    szMDParser.show();
+    gMDParser.show();
     mtxIo.lock();
     printf("IoThreadStat\nfuncNo|success|fail|successCostUs|failCostUs|aveSuccessCost|aveFailCost\n");
     for (auto p: fsIo) {
@@ -152,7 +152,7 @@ void show() {
 }
 
 void dump() {
-    szMDParser.dump("dump.txt");
+    gMDParser.dump("dump.txt");
 }
 
 

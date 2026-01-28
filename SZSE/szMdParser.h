@@ -2,23 +2,18 @@
 // Created by chend on 2026/1/14.
 //
 
-#ifndef SZSE_SZMDPARSER_H
-#define SZSE_SZMDPARSER_H
+#ifndef SZSE_MDPARSER_H
+#define SZSE_MDPARSER_H
 
-#include <mutex>
-#include <unordered_map>
 #include "types.h"
 #include "shmStorage.h"
 
 
-
-
-class SZMDParser {
-    // std::unordered_map<int,MyMDItem> myMDMap;
+class MDParser {
     ShmStorage myMDmap;
-    // std::mutex mtx;
+
 public:
-    SZMDParser();
+    MDParser();
 
     int makeKey(int marketCode, int stockCode);
 
@@ -30,8 +25,9 @@ public:
     int saveOrigTime(int marketCode, int stockCode, long long origTime);
     int saveMktStkCode(int marketCode, int stockCode);
     int parse(const RawSzMDData& mdData);
+    int parse(const RawSzHkMDData &mdData);
     void show();
     void dump(const char* fileName);
 };
 
-#endif //SZSE_SZMDPARSER_H
+#endif //SZSE_MDPARSER_H

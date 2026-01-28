@@ -29,6 +29,8 @@ add_executable(SZSE main.cpp
         myFIFOQueue.cpp
         business.cpp
         shmStorage.cpp
+        appSzManager.cpp
+        appSzManager.h
 )
 
 target_link_libraries(SZSE pthread rt)

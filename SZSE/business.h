@@ -12,15 +12,18 @@
 void popAndParse(int timeoutMs, v5QueueData &queueData);
 
 int deserializeBody(RawSzMDData &md,const void* buffer, uint32_t length);
+int deserializeBody(RawSzHkMDData &md,const void* buffer, uint32_t length);
 int deserializeBody(RawSzHkMarketStatus &ms,const void* buffer, uint32_t length);
 int deserializeBody(RawSzChannelStat &cs,const void* buffer, uint32_t length);
 
 void LogMdData(const RawSzMDData & md);
+void LogMdData(const RawSzHkMDData & md);
 void LogMdData(const RawSzHkMarketStatus & ms);
 void LogMdData(const RawSzChannelStat & cs);
 
 
 void OnRealTimeMD(const RawSzMDData &md);
+void OnRealTimeMD(const RawSzHkMDData &md);
 void OnRealTimeHKMarketStatus(const RawSzHkMarketStatus &ms);
 void OnChannelStat(const RawSzChannelStat &cs);
 
@@ -86,9 +89,17 @@ public:
 };
 
 inline void initializeMsgHandlers() {
-    MsgRouter::getInstance().registerHandler<RawSzMDData>(300111, deserializeBody,nullptr,OnRealTimeMD );
-    MsgRouter::getInstance().registerHandler<RawSzHkMarketStatus>(390019,deserializeBody,nullptr,OnRealTimeHKMarketStatus);
+#if 0
+    MsgRouter::getInstance().registerHandler<RawSzMDData>(300111, deserializeBody,LogMdData,OnRealTimeMD );
+    MsgRouter::getInstance().registerHandler<RawSzHkMDData>(306311, deserializeBody,LogMdData,OnRealTimeMD );
+    MsgRouter::getInstance().registerHandler<RawSzHkMarketStatus>(390019,deserializeBody,LogMdData,OnRealTimeHKMarketStatus);
     MsgRouter::getInstance().registerHandler<RawSzChannelStat>(390090,deserializeBody,LogMdData,OnChannelStat);
+#else
+    MsgRouter::getInstance().registerHandler<RawSzMDData>(300111, deserializeBody,nullptr,OnRealTimeMD );
+    MsgRouter::getInstance().registerHandler<RawSzHkMDData>(306311, deserializeBody,nullptr,OnRealTimeMD );
+    MsgRouter::getInstance().registerHandler<RawSzHkMarketStatus>(390019,deserializeBody,nullptr,OnRealTimeHKMarketStatus);
+    MsgRouter::getInstance().registerHandler<RawSzChannelStat>(390090,deserializeBody,nullptr,OnChannelStat);
+#endif
 }
 
 #endif //SZSE_BUSINESS_H
