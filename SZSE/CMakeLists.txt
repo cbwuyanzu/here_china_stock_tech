@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_VERBOSE_MAKEFILE ON)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(../3rd_lib/include ${PROJECT_SOURCE_DIR})
 
@@ -30,7 +31,6 @@ add_executable(SZSE main.cpp
         shmStorage.cpp
 )
 
-#target_link_libraries(SZSE spdlog pthread)
 target_link_libraries(SZSE pthread rt)
 
 add_executable(logTest ut/logTest.cpp loggerSingleton.cpp)

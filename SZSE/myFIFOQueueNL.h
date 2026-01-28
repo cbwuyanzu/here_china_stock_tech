@@ -99,21 +99,6 @@ public:
         return true;
     }
 
-    // 原地构造元素
-    template<typename... Args>
-    bool emplace(Args&&... args) {
-        size_t write_idx = write_index_.load(std::memory_order_relaxed);
-        size_t next_write_idx = (write_idx + 1) % capacity_;
-        size_t read_idx = read_index_.load(std::memory_order_acquire);
-
-        if (next_write_idx == read_idx) {
-            return false;
-        }
-
-        buffer_[write_idx] = T(std::forward<Args>(args)...);
-        write_index_.store(next_write_idx, std::memory_order_release);
-        return true;
-    }
 
     // 出队（立即返回）
     bool pop(T& value) noexcept {
@@ -171,20 +156,6 @@ public:
         return true;
     }
 
-    // 查看队尾元素（不弹出）
-    bool back(T& value) const noexcept {
-        size_t read_idx = read_index_.load(std::memory_order_acquire);
-        size_t write_idx = write_index_.load(std::memory_order_acquire);
-
-        if (read_idx == write_idx) {
-            return false;
-        }
-
-        // 计算最后一个元素的位置
-        size_t last_idx = (write_idx == 0) ? capacity_ - 1 : write_idx - 1;
-        value = buffer_[last_idx];
-        return true;
-    }
 };
 
 #endif // MY_FIFO_QUEUE_NL
