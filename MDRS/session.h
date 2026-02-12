@@ -6,10 +6,10 @@
 #ifndef SZSE_SESSION_H
 #define SZSE_SESSION_H
 
-#include "myFIFOQueue.h"
-#include "myFIFOQueueNL.h"
-#include "types.h"
-#include "appXSHEManager.h"
+#include "myPub/myFIFOQueue.h"
+#include "myPub/myFIFOQueueNL.h"
+#include "XSHETypes.h"
+#include "appManager.h"
 
 int SendLogon(int sock, ReqLogonCfg config);
 int SendLogout(int sock);

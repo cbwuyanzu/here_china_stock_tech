@@ -4,7 +4,7 @@
 
 #include <thread>
 #include <vector>
-#include "loggerSingleton.h"
+#include "../myPub/loggerSingleton.h"
 
 
 constexpr int numLoops = 1000000;

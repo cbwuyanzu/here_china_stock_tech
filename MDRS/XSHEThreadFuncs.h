@@ -4,8 +4,8 @@
 
 #ifndef SZSE_THREADFUNCS_H
 #define SZSE_THREADFUNCS_H
-#include "myInih.h"
-#include "utility.h"
+#include "myPub/myInih.h"
+#include "myPub/utility.h"
 #include "session.h"
 
 void szIoThreadFunc(const Configuration &cfg);

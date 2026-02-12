@@ -25,9 +25,6 @@ using Price = int64_t;
 using Qty = int64_t;
 using Amt = int64_t;
 
-
-
-
 struct ReqLogonCfg {
     char szLocalName[20];
     char szTargetName[20];

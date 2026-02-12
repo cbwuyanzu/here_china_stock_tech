@@ -20,29 +20,29 @@ include_directories(../3rd_lib/include ${PROJECT_SOURCE_DIR})
 #endif()
 
 add_executable(SZSE main.cpp
-        myInih.cpp
+        myPub/myInih.cpp
         session.cpp
-        utility.cpp
-        loggerSingleton.cpp
+        myPub/utility.cpp
+        myPub/loggerSingleton.cpp
         XSHEMdParser.cpp
-        threadFuncs.cpp
-        myFIFOQueue.cpp
-        business.cpp
-        shmStorage.cpp
-        appXSHEManager.cpp
-        appXSHEManager.h
+        XSHEThreadFuncs.cpp
+        myPub/myFIFOQueue.cpp
+        XSHEBusiness.cpp
+        myPub/shmStorage.cpp
+        appManager.cpp
+        appManager.h
 )
 
 target_link_libraries(SZSE pthread rt)
 
-add_executable(logTest ut/logTest.cpp loggerSingleton.cpp)
+add_executable(logTest ut/logTest.cpp myPub/loggerSingleton.cpp)
 target_link_libraries(logTest pthread)
 
-add_executable(queueTest ut/queueSingleProduceConsumerTest.cpp myFIFOQueue.cpp)
+add_executable(queueTest ut/queueSingleProduceConsumerTest.cpp myPub/myFIFOQueue.cpp)
 target_link_libraries(queueTest pthread)
 
 add_executable(shmStorageTest ut/shmStorageTest.cpp)
 target_link_libraries(shmStorageTest pthread rt)
 
-add_executable(queueNLTest ut/queueNLTest.cpp myFIFOQueue.cpp myFIFOQueueNL.cpp)
+add_executable(queueNLTest ut/queueNLTest.cpp myPub/myFIFOQueue.cpp myPub/myFIFOQueueNL.cpp)
 target_link_libraries(queueNLTest pthread)

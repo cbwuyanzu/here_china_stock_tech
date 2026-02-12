@@ -5,8 +5,8 @@
 #ifndef SZSE_APPXSHEMANAGER_H
 #define SZSE_APPXSHEMANAGER_H
 
-#include "loggerSingleton.h"
-#include "myFIFOQueueNL.h"
+#include "myPub/loggerSingleton.h"
+#include "myPub/myFIFOQueueNL.h"
 #include "XSHEMdParser.h"
 
 

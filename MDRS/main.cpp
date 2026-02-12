@@ -4,16 +4,16 @@
 //
 
 // dependency comment
-// types.h           -> configuration.h
+// XSHETypes.h           -> configuration.h
 // loggerSingleton.h ->
 
 // utility.h -> session.h
 
-#include "business.h"
-#include "myInih.h"
-#include "loggerSingleton.h"
-#include "threadFuncs.h"
-#include "appXSHEManager.h"
+#include "XSHEBusiness.h"
+#include "myPub/myInih.h"
+#include "myPub/loggerSingleton.h"
+#include "XSHEThreadFuncs.h"
+#include "appManager.h"
 
 #define BUFFER_SIZE 1024
 

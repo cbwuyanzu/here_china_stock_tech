@@ -5,8 +5,8 @@
 #ifndef XSHE_MDPARSER_H
 #define XSHE_MDPARSER_H
 
-#include "types.h"
-#include "shmStorage.h"
+#include "XSHETypes.h"
+#include "myPub/shmStorage.h"
 
 
 class MDParser {

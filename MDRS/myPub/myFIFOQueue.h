@@ -9,7 +9,7 @@
 #include <mutex>
 #include <queue>
 #include <vector>
-#include "types.h"
+#include "../XSHETypes.h"
 
 template<typename T>
 class MyFifoQueue {

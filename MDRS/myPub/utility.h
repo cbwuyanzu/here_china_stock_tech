@@ -6,7 +6,7 @@
 #ifndef SZSE_UTILITY_H
 #define SZSE_UTILITY_H
 
-#include "types.h"
+#include "../XSHETypes.h"
 
 #define bswap16(x) (((x & 0xff00) >> 8 )| ((x & 0x00ff) << 8))
 #define bswap32(x) (((x & 0xff000000) >> 24 )| ((x & 0x000000ff) << 24) | \

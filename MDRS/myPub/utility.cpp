@@ -8,9 +8,9 @@
 #include <sys/socket.h>
 #include "utility.h"
 
-#include "appXSHEManager.h"
+#include "../appManager.h"
 #include "loggerSingleton.h"
-#include "XSHEMdParser.h"
+#include "../XSHEMdParser.h"
 
 int myConnect(const char* serverIP,const int port, int &sock_fd) {
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);

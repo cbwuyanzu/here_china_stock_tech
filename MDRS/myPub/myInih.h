@@ -21,7 +21,7 @@
 //std::transform
 #include <algorithm>
 
-#include "types.h"
+#include "../XSHETypes.h"
 #include "loggerSingleton.h"
 
 #pragma pack(1)

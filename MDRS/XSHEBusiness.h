@@ -6,10 +6,10 @@
 #define SZSE_BUSINESS_H
 
 #include <mutex>
-#include "types.h"
-#include "loggerSingleton.h"
-#include "myFIFOQueueNL.h"
-#include "appXSHEManager.h"
+#include "XSHETypes.h"
+#include "myPub/loggerSingleton.h"
+#include "myPub/myFIFOQueueNL.h"
+#include "appManager.h"
 
 void popAndParse(int timeoutMs, v5QueueData &queueData);
 

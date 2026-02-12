@@ -7,7 +7,7 @@
 #include <vector>
 #include "spdlog/spdlog.h"
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include "myFIFOQueue.h"
+#include "../myPub/myFIFOQueue.h"
 
 constexpr int NumLoops = 50* 1000;
 constexpr int PreSleepMs = 2000;

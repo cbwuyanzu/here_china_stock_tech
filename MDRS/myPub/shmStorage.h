@@ -17,7 +17,7 @@
 #include <cstring>
 #include <mutex>
 
-#include "types.h"
+#include "../XSHETypes.h"
 
 // 固定大小的简单哈希表（开放寻址，线性探测）
 struct ShmRecord {

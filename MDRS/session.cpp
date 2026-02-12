@@ -5,8 +5,8 @@
 
 //send
 #include <netinet/in.h>
-#include "loggerSingleton.h"
-#include "utility.h"
+#include "myPub/loggerSingleton.h"
+#include "myPub/utility.h"
 #include "session.h"
 
 int SendLogon(int sock, ReqLogonCfg reqLogon) {
