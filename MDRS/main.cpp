@@ -1,4 +1,4 @@
-// Demo to consume SZSE MarketData
+// Demo to consume MDRS MarketData
 //
 // Created by dzg on 2025/12/30.
 //
