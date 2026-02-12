@@ -10,7 +10,7 @@
 #include "XSHEMdParser.h"
 
 
-class appXSHEManager {
+class appManager {
 private:
     MDParser mdParser;
     std::mutex mtxIo;
@@ -20,15 +20,18 @@ private:
     MyFifoQueueNL<v5QueueData> queueForXSHEMarketData;
     volatile int hkTradingSessionSubId{-1};
     volatile int exitFlag{0};
-    appXSHEManager() = default;
-    ~appXSHEManager() = default;
+    appManager() = default;
+    ~appManager() = default;
+
+    //for XSHG
+    MyFifoQueueNL<v5QueueData> queueForXSHGMarketData;
 public:
-    appXSHEManager(const appXSHEManager &) = delete;
-    appXSHEManager(const appXSHEManager &&) = delete;
-    appXSHEManager& operator =(const appXSHEManager &) = delete;
-    appXSHEManager&& operator =(const appXSHEManager &&) = delete;
-    static appXSHEManager& getInstance() {
-        static appXSHEManager instance;
+    appManager(const appManager &) = delete;
+    appManager(const appManager &&) = delete;
+    appManager& operator =(const appManager &) = delete;
+    appManager&& operator =(const appManager &&) = delete;
+    static appManager& getInstance() {
+        static appManager instance;
         return instance;
     }
 
@@ -83,6 +86,6 @@ public:
     void clear();
 };
 
-#define APPINSTANCE appXSHEManager::getInstance()
+#define APPINSTANCE appManager::getInstance()
 
 #endif //SZSE_APPXSHEMANAGER_H

@@ -5,7 +5,7 @@
 #include "appManager.h"
 
 
-void appXSHEManager::printCmd() {
+void appManager::printCmd() {
     printf("press your cmd:\n");
     printf("  Q      Quit\n");
     printf("  S      Show\n");
@@ -14,7 +14,7 @@ void appXSHEManager::printCmd() {
     printf("\n");
 }
 
-void appXSHEManager::show() {
+void appManager::show() {
     mtxIo.lock();
     printf("IoThreadStat\nfuncNo|success|fail|successCostUs|failCostUs|aveSuccessCost|aveFailCost\n");
     for (auto p: fsIo) {
@@ -37,11 +37,11 @@ void appXSHEManager::show() {
     printf("\n");
 }
 
-void appXSHEManager::dump() {
+void appManager::dump() {
     mdParser.dump("dump.txt");
 }
 
-void appXSHEManager::clear() {
+void appManager::clear() {
     mdParser.clear();
 }
 
