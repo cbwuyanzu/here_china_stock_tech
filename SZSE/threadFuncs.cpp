@@ -4,16 +4,13 @@
 #include "threadFuncs.h"
 #include "business.h"
 
-extern int exitFlag;
-extern MsgRouter msgRouter;
-MsgRouter MsgRouter::instance;
 
 void szIoThreadFunc(const Configuration &cfg) {
     constexpr int TOTAL_STEP  = 5;
     int needReconnect = 1;
     int clientSocket = 0;
-    while (!exitFlag) {
-        while (needReconnect && !exitFlag) {
+    while (!APPINSTANCE.getExitFlag()) {
+        while (needReconnect && !APPINSTANCE.getExitFlag()) {
             if (myConnect(cfg.szServerIP,cfg.iPort, clientSocket)) {
                 LOG_CRITICAL("step:1 myConnect failed");
                 std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -51,7 +48,7 @@ void szBusinessThreadFunc(const Configuration &cfg) {
     LOG_INFO("szBusinessThreadFunc running");
     v5QueueData queueData;
     initializeMsgHandlers();
-    while (!exitFlag) {
+    while (!APPINSTANCE.getExitFlag()) {
         //不用sleep了, 因为pop中含了wait_for
         popAndParse(cfg.popTimeout,queueData);
     }

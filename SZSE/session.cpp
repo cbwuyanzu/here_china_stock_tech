@@ -9,11 +9,6 @@
 #include "utility.h"
 #include "session.h"
 
-FuncStatMap fsIo;
-std::mutex mtxIo;
-
-MyFifoQueueNL<v5QueueData> queueForSZMarketData;
-
 int SendLogon(int sock, ReqLogonCfg reqLogon) {
     // MsgReqLogon msg = {};
     v5mdLogonBody body = {};
@@ -163,21 +158,21 @@ int RecvMsg(int sock) {
         default:
             v5QueueData queueData{};
             memcpy(&queueData,buffer,sizeof(v5MDHead)+BodyLength);
-            queueForSZMarketData.push(queueData);
+            APPINSTANCE.getQueue().push(queueData);
             break;
     }
     {
-        mtxIo.lock();
+        APPINSTANCE.getIoMutex().lock();
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        auto it = fsIo.find(msgType);
-        if ( it == fsIo.end()) {
-            fsIo.insert(std::make_pair(msgType,funcStat{1,0,duration.count()}));
+        auto it = APPINSTANCE.getIoFs().find(msgType);
+        if ( it == APPINSTANCE.getIoFs().end()) {
+            APPINSTANCE.getIoFs().insert(std::make_pair(msgType,funcStat{1,0,duration.count()}));
         } else {
             it->second.success++;
             it->second.successTimeCostUs += duration.count();
         }
-        mtxIo.unlock();
+        APPINSTANCE.getIoMutex().unlock();
     }
     return 0;
 }

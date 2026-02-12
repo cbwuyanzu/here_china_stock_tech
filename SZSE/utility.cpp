@@ -7,14 +7,10 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include "utility.h"
-#include "loggerSingleton.h"
-#include "szMdParser.h"
 
-extern MDParser gMDParser;
-extern std::mutex mtxIo;
-extern std::mutex mtxBusiness;
-extern FuncStatMap fsIo;
-extern FuncStatMap fsBusiness;
+#include "appXSHEManager.h"
+#include "loggerSingleton.h"
+#include "XSHEMdParser.h"
 
 int myConnect(const char* serverIP,const int port, int &sock_fd) {
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -118,43 +114,6 @@ long long getTimestampAsLongLong() {
     result += millis;                                                 // 毫秒
     return result;
 }
-
-void printCmd() {
-    printf("press your cmd:\n");
-    printf("  Q      Quit\n");
-    printf("  S      Show\n");
-    printf("  D      Dump\n");
-    printf("\n");
-}
-
-void show() {
-    gMDParser.show();
-    mtxIo.lock();
-    printf("IoThreadStat\nfuncNo|success|fail|successCostUs|failCostUs|aveSuccessCost|aveFailCost\n");
-    for (auto p: fsIo) {
-        printf("%d|%lld|%lld|%lld|%lld|"
-               "%lld|%lld\n",
-            p.first, p.second.success, p.second.fail, p.second.successTimeCostUs, p.second.failTimeCostUs,
-            p.second.success!=0 ? p.second.successTimeCostUs/p.second.success:0, p.second.fail != 0 ? p.second.failTimeCostUs/p.second.fail:0);
-    }
-    mtxIo.unlock();
-    mtxBusiness.lock();
-    printf("BusinessThreadStat\nfuncNo|success|fail|successCostUs|failCostUs|aveSuccessCost|aveFailCost\n");
-    for (auto p: fsBusiness) {
-        printf("%d|%lld|%lld|%lld|%lld|"
-               "%lld|%lld\n",
-            p.first, p.second.success, p.second.fail, p.second.successTimeCostUs, p.second.failTimeCostUs,
-            p.second.success!=0 ? p.second.successTimeCostUs/p.second.success:0, p.second.fail != 0 ? p.second.failTimeCostUs/p.second.fail:0);
-    }
-    mtxBusiness.unlock();
-    printf("Connect Status: not finished yet\n");
-    printf("\n");
-}
-
-void dump() {
-    gMDParser.dump("dump.txt");
-}
-
 
 #if 0
 ******

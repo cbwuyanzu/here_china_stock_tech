@@ -9,6 +9,7 @@
 #include "myFIFOQueue.h"
 #include "myFIFOQueueNL.h"
 #include "types.h"
+#include "appXSHEManager.h"
 
 int SendLogon(int sock, ReqLogonCfg config);
 int SendLogout(int sock);

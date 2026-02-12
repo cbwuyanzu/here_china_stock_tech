@@ -24,13 +24,13 @@ add_executable(SZSE main.cpp
         session.cpp
         utility.cpp
         loggerSingleton.cpp
-        szMdParser.cpp
+        XSHEMdParser.cpp
         threadFuncs.cpp
         myFIFOQueue.cpp
         business.cpp
         shmStorage.cpp
-        appSzManager.cpp
-        appSzManager.h
+        appXSHEManager.cpp
+        appXSHEManager.h
 )
 
 target_link_libraries(SZSE pthread rt)

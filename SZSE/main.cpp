@@ -13,15 +13,16 @@
 #include "myInih.h"
 #include "loggerSingleton.h"
 #include "threadFuncs.h"
+#include "appXSHEManager.h"
 
 #define BUFFER_SIZE 1024
 
-int exitFlag = 0;
 LoggerSingleton LoggerSingleton::instance;
 
 
 int main() {
   Configuration cfg = {};
+
   {
     auto loggerConsole = spdlog::stdout_color_mt("console");
     loggerConsole->info("start reading config.ini");
@@ -37,11 +38,11 @@ int main() {
     LoggerSingleton::getInstance().logInit(cfg.logFile,cfg.logLevel);
     reader.showConfig(cfg);
   }
-  std::thread szIoThread(szIoThreadFunc,std::ref(cfg));
-  std::thread szBusinessThread(szBusinessThreadFunc,std::ref(cfg));
+  std::thread tXSHEIoThread(szIoThreadFunc,std::ref(cfg));
+  std::thread tXSHEBusinessThread(szBusinessThreadFunc,std::ref(cfg));
   char cmd = 0;
-  printCmd();
-  while (!exitFlag) {
+  APPINSTANCE.printCmd();
+  while (!APPINSTANCE.getExitFlag()) {
     scanf("%c",&cmd);
     if (cmd == '\n') {
       continue;
@@ -49,21 +50,24 @@ int main() {
     switch (cmd) {
       case 'q':
       case 'Q':
-        exitFlag = 1;
+        APPINSTANCE.setExitFlag(1);
         break;
       case 's':
       case 'S':
-        show();
+        APPINSTANCE.show();
         break;
       case 'd':
       case 'D':
-        dump();
+        APPINSTANCE.dump();
         break;
+      case 'c':
+      case 'C':
+        APPINSTANCE.clear();
       default: ;
     }
-    printCmd();
+    APPINSTANCE.printCmd();
   }
-  szIoThread.join();
-  szBusinessThread.join();
+  tXSHEIoThread.join();
+  tXSHEBusinessThread.join();
   return 0;
 }

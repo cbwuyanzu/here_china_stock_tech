@@ -2,8 +2,8 @@
 // Created by chend on 2026/1/14.
 //
 
-#ifndef SZSE_MDPARSER_H
-#define SZSE_MDPARSER_H
+#ifndef XSHE_MDPARSER_H
+#define XSHE_MDPARSER_H
 
 #include "types.h"
 #include "shmStorage.h"
@@ -28,6 +28,7 @@ public:
     int parse(const RawSzHkMDData &mdData);
     void show();
     void dump(const char* fileName);
+    void clear();
 };
 
-#endif //SZSE_MDPARSER_H
+#endif //XSHE_MDPARSER_H

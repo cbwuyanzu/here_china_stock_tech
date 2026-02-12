@@ -6,7 +6,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
-#include "szMdParser.h"
+#include "XSHEMdParser.h"
 #include <spdlog/fmt/bundled/base.h>
 #include "utility.h"
 
@@ -203,5 +203,10 @@ void MDParser::dump(const char* file_path) {
     printf("dump finished %s %d Lines!\n\n",file_path, i);
     close(fd);
 }
+
+void MDParser::clear() {
+    myMDmap.clear();
+}
+
 
 MDParser gMDParser;

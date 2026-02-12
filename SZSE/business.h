@@ -8,6 +8,8 @@
 #include <mutex>
 #include "types.h"
 #include "loggerSingleton.h"
+#include "myFIFOQueueNL.h"
+#include "appXSHEManager.h"
 
 void popAndParse(int timeoutMs, v5QueueData &queueData);
 
@@ -81,9 +83,8 @@ public:
     MsgRouter(const MsgRouter&) = delete;
     MsgRouter& operator=(const MsgRouter&) = delete;
 
-    static MsgRouter instance;
-
     static MsgRouter& getInstance() {
+        static MsgRouter instance;
         return instance;
     }
 };

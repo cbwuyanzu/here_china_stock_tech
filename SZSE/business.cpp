@@ -3,22 +3,14 @@
 //
 
 #include "business.h"
-#include "myFIFOQueue.h"
-#include "myFIFOQueueNL.h"
 
+#include "appXSHEManager.h"
 #include "utility.h"
-#include "szMdParser.h"
+#include "XSHEMdParser.h"
 
-extern  MDParser gMDParser;
-extern MyFifoQueueNL<v5QueueData> queueForSZMarketData;
-
-FuncStatMap fsBusiness;
-std::mutex mtxBusiness;
-
-int globalHKTradingSessionSubId = -1;
 
 void popAndParse(int timeoutMs, v5QueueData &queueData){
-    if (!queueForSZMarketData.try_pop(queueData,timeoutMs)) {
+    if (!APPINSTANCE.getQueue().try_pop(queueData,timeoutMs)) {
         return;
     }
     auto start = std::chrono::system_clock::now();
@@ -54,32 +46,33 @@ void popAndParse(int timeoutMs, v5QueueData &queueData){
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     {
-        mtxBusiness.lock();
-        auto it = fsBusiness.find(queueData.parsedHead.MsgType);
-        if ( it == fsBusiness.end()) {
-            fsBusiness.insert(std::make_pair(queueData.parsedHead.MsgType,funcStat{1,0,duration.count()}));
+        APPINSTANCE.getBusinessMutex().lock();
+        auto it = APPINSTANCE.getBusinessFs().find(queueData.parsedHead.MsgType);
+        if ( it == APPINSTANCE.getBusinessFs().end()) {
+            APPINSTANCE.getBusinessFs().insert(std::make_pair(queueData.parsedHead.MsgType,funcStat{1,0,duration.count()}));
         } else {
             it->second.success++;
             it->second.successTimeCostUs += duration.count();
         }
-        mtxBusiness.unlock();
+        APPINSTANCE.getBusinessMutex().unlock();
     }
 }
 
 void OnRealTimeMD(const RawSzMDData &md) {
-    gMDParser.parse(md);
+    APPINSTANCE.getMDParser().parse(md);
 }
 
 void OnRealTimeMD(const RawSzHkMDData &md) {
-    gMDParser.parse(md);
+    APPINSTANCE.getMDParser().parse(md);
 }
 
 void OnRealTimeHKMarketStatus(const RawSzHkMarketStatus &ms) {
     int tmp = atoi(ms.TradingSessionSubID);
-    if (globalHKTradingSessionSubId != tmp) {
-        LOG_INFO("globalHKTradingSessionSubId changed [{}-{}] -> [{}-{}]",globalHKTradingSessionSubId,DictTradingSessionSubID.at(globalHKTradingSessionSubId),
+    int cur = APPINSTANCE.getHkTradingSessionSubId();
+    if (cur != tmp) {
+        LOG_INFO("globalHKTradingSessionSubId changed [{}-{}] -> [{}-{}]",cur,DictTradingSessionSubID.at(cur),
                                                         tmp,DictTradingSessionSubID.at(tmp));
-        globalHKTradingSessionSubId = tmp;
+        APPINSTANCE.setHkTradingSessionSubId(tmp);
     }
 }
 
